@@ -137,12 +137,13 @@ class StaticDino(Dbh.Base):
         self.discovered = False
 
     def setTiers(self,tierlist,overall=None):
-        tierlist.append(None)
         self.damage_tier = tierlist[0]
         self.defense_tier = tierlist[1]
         self.speed_tier = tierlist[2]
         self.health_tier = tierlist[3]
-        self.tier = tierlist[4] or round((sum(tierlist)+len(tierlist))/len(tierlist))
+        r = round((sum(tierlist)+len(tierlist))/len(tierlist))
+        tierlist.append(None)
+        self.tier = tierlist[4] or r
         self.is_random = False
 
     def setup(self):
