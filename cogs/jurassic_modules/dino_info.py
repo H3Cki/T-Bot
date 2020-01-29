@@ -136,12 +136,13 @@ class StaticDino(Dbh.Base):
         self.is_random = True
         self.discovered = False
 
-    def setTiers(self,tierlist):
-        if len(tierlist) == 4:
-            self.damage_tier, self.defense_tier, self.speed_tier, self.health_tier = tierlist
-        elif len(tierlist) == 5:
-            self.damage_tier, self.defense_tier, self.speed_tier, self.health_tier, self.tierlist = tierlist
-        self.tier = round((sum(tierlist)+len(tierlist))/len(tierlist))
+    def setTiers(self,tierlist,overall=None):
+        tierlist.append(None)
+        self.damage_tier = tierlist[0]
+        self.defense_tier = tierlist[1]
+        self.speed_tier = tierlist[2]
+        self.health_tier = tierlist[3]
+        self.tier = tierlist[4] or round((sum(tierlist)+len(tierlist))/len(tierlist))
         self.is_random = False
 
     def setup(self):
