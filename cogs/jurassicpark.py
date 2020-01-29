@@ -49,7 +49,7 @@ class JurrasicPark(commands.Cog):
 
         for d in dl:
             txt = f"{DSE.emojis['blank']} {DSE.emojis['damage']}{str(d.damage)}{DSE.emojis['blank']}{DSE.emojis['defense']}{str(d.defense)}{DSE.emojis['blank']}{DSE.emojis['health']}{str(d.health)}{DSE.emojis['blank']}{DSE.emojis['speed']}{str(d.speed)}"
-            embed.add_field(name=f"`🦖` **{d.name.capitalize()}**#*{d.id}*  Tier {d.tier}",value=txt,inline=False)
+            embed.add_field(name=f"`🦖` **{d.name.capitalize()}**#*{d.id}*  Tier {d.tier+1}",value=txt,inline=False)
 
         # # for i,d in enumerate(dl):
         # #     lines.append( (f"{i+1}. T{d.tier}", f"{d.name.capitalize()}#{d.id}", str(d.damage), str(d.defense), str(d.health), str(d.speed)) )
@@ -94,7 +94,7 @@ class JurrasicPark(commands.Cog):
             static_parts_req = dino.getPartsRequired()
             for sp in static_parts_req:
                 t += sp.getEmoji() + f"x{sp.getCount(profile)} "
-            embed.add_field(name=f"**{dino.name.capitalize()}** Tier {dino.tier}",value=t, inline= False)
+            embed.add_field(name=f"**{dino.name.capitalize()}** Tier {dino.tier+1}",value=t, inline= False)
    
 
         await ctx.send(embed=embed)

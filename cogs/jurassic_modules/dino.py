@@ -14,6 +14,7 @@ class Dino(Dbh.Base):
     speed = Column(Float)
     health = Column(Integer)
     tier = Column(Integer)
+    
     def __init__(self,sd,profile):
         self.name = sd.name
         self.profile_id = profile.id
