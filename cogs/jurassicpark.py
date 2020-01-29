@@ -127,7 +127,6 @@ class JurrasicPark(commands.Cog):
                 msg = await ctx.send(embed=embed)
             except:
                 Dbh.session.delete(dino)
-                Dbh.session.commit()
                 continue
 
             def check(m):
@@ -138,13 +137,16 @@ class JurrasicPark(commands.Cog):
             if resp == 'skip':
                 continue
             if resp == 'stop':
+                Dbh.session.commit()
                 break
+            
             if resp == 'del':
                 await my_channel.send(f"{ctx.message.author.name} usunal {dino.name}: {dino.getValidUrl()}")
                 StaticDino.removeFromFile([dino,])
                 e = discord.Embed(description=f"{dino.name.capitalize()} został usunięty.")
                 e.colour = discord.Colour.from_rgb(255,0,0)
                 await msg.edit(embed=e)
+                Dbh.session.commit()
                 continue
             
             if len(resp) > 5 or len(resp) < 4:
@@ -171,6 +173,7 @@ class JurrasicPark(commands.Cog):
                 break
 
             dino.setTiers(tiers)
+            Dbh.session.commit()
             e = dino.getEmbed()
             e.color = discord.Colour.from_rgb(0,255,0)
             e.set_footer(text="Edycja Pomyślna")
