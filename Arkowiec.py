@@ -26,5 +26,5 @@ async def on_ready():
     print(f'[{datetime.now()}] Successfully logged in and booted...!')
 
 
-bot.run("NjYzMTk5MzQ1OTE0NTQ0MTM4.XhFC3Q.p096XpB7m65BRzpVtITp9kdkSAc",reconnect=True)
+bot.run("NjYzMTk5MzQ1OTE0NTQ0MTM4.XjIASQ.yXh8UuQ0pAc1WqzdFicknUaknX4",reconnect=True)
 

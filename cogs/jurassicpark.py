@@ -102,7 +102,8 @@ class JurrasicPark(commands.Cog):
 
     @commands.command(name='info')
     async def dino_info(self,ctx, dino_name):
-        dino = StaticDino.get
+        dino = StaticDino.getDino(dino_name)
+        await ctx.send(embed=dino.getEmbed())
 
 
     @commands.command(name='ratedinos')
