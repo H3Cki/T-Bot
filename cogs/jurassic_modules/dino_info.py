@@ -117,12 +117,13 @@ class StaticDino(Dbh.Base):
                 if new_dino.isValid():
                     c += 1
                     Dbh.session.add(new_dino)
-                    Dbh.commit()
+                    Dbh.session.commit()
                 else:
                     to_remove.append(new_dino)
 
         
         cls.removeFromFile(to_remove,del_instance=False)
+        Dbh.session.commit()
         cls.updateList()
 
     def __init__(self,dino_name):
