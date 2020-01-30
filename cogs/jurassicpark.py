@@ -193,12 +193,12 @@ class JurrasicPark(commands.Cog):
         Dbh.init()
         Dbh.createTables()
 
-        # dinos = StaticDino.getAll()
-        # for dino in dinos:
-        #     StaticDino.print()
+        dl = StaticDino.getSetDinos(is_random=False)
+        for d in dl:
+            d.fixOverall()
+
         
-    
-        StaticDino.updateDinos(limit=10)
+        StaticDino.updateDinos()
         StaticPart.updateParts(StaticDino.getAll())
         Dbh.session.commit()
 

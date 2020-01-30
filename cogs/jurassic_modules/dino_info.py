@@ -70,7 +70,6 @@ class StaticDino(Dbh.Base):
             content = content.replace(dino.name+'\n','')
             if del_instance:
                 dino.delete()
-            print(f"REMOVED {dino.name}")
         with open(cls.file_path, 'w', encoding='utf-8') as f:
             f.write(content)
         Dbh.session.commit()
@@ -121,8 +120,7 @@ class StaticDino(Dbh.Base):
                     Dbh.commit()
                 else:
                     to_remove.append(new_dino)
-            else:
-                print(f"{dino.name} EXISTS.")
+
         
         cls.removeFromFile(to_remove,del_instance=False)
         cls.updateList()
@@ -141,10 +139,13 @@ class StaticDino(Dbh.Base):
         self.defense_tier = tierlist[1]
         self.speed_tier = tierlist[2]
         self.health_tier = tierlist[3]
-        r = round((sum(tierlist)+len(tierlist))/len(tierlist))
+        r = round( sum(tierlist) /len(tierlist) )
         tierlist.append(None)
         self.tier = tierlist[4] or r
         self.is_random = False
+
+    def fixOverall(self):
+        self.tier = round((self.damage_tier+self.defense_tier+self.speed_tier+self.health_tier)/len(tierlist) )
 
     def setup(self):
         self.link_pl = checkURL('https://pl.wikipedia.org/wiki/'+self.name,suff='_(dinozaur)')
