@@ -122,7 +122,7 @@ class JurrasicPark(commands.Cog):
             embed = dino.getEmbed()
             n_set = len(StaticDino.getSetDinos())
             inf = f"{n_set}/{n_total} dinos set."
-            embed.set_footer(text=f"[{inf}]\nTiery: 1,2,3,4,5 (od najlepszego do najgorszego)\nŻeby wyznaczyć tiery statystyk wpisz: 1231 (cyfry oznaczaja kolejne katerogie tierów)\nOpcjonalnie można dopisać piątą wartość, która będzie odpowiadała Overall Tier, wtedy będzie on ustawiony na sztywno zamiast być liczonym ze średniej tierów.\nskip - kolejny dino\ndel - usuwa dinozaura z listy jeśli ma chujowe zdjecie, albo ogolnie jest meh\nstop - koniec przegladania")
+            embed.set_footer(text=f"[{inf}]\nTiery: 5,4,3,2,1 (5 - best, 1 - worst)\nŻeby wyznaczyć tiery statystyk wpisz: 1231 (cyfry oznaczaja kolejne katerogie tierów)\nOpcjonalnie można dopisać piątą wartość, która będzie odpowiadała Overall Tier, wtedy będzie on ustawiony na sztywno zamiast być liczonym ze średniej tierów.\nskip - kolejny dino\ndel - usuwa dinozaura z listy jeśli ma chujowe zdjecie, albo ogolnie jest meh\nstop - koniec przegladania")
             try:
                 msg = await ctx.send(embed=embed)
             except:

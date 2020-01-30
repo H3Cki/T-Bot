@@ -97,7 +97,7 @@ class HealthTier1(Tier):
     VALUE_RANGE = (160,200)
 
 
-DAMAGE_TIERS = [DamageTier1,DamageTier2,DamageTier3,DamageTier4,DamageTier5]
-DEFENSE_TIERS = [DefenseTier1,DefenseTier2,DefenseTier3,DefenseTier4,DefenseTier5]
-SPEED_TIERS = [SpeedTier1,SpeedTier2,SpeedTier3,SpeedTier4,SpeedTier5]
-HEALTH_TIERS = [HealthTier1,HealthTier2,HealthTier3,HealthTier4,HealthTier5]
+DAMAGE_TIERS = list(reversed([DamageTier1,DamageTier2,DamageTier3,DamageTier4,DamageTier5]))
+DEFENSE_TIERS = list(reversed([DefenseTier1,DefenseTier2,DefenseTier3,DefenseTier4,DefenseTier5]))
+SPEED_TIERS = list(reversed([SpeedTier1,SpeedTier2,SpeedTier3,SpeedTier4,SpeedTier5]))
+HEALTH_TIERS = list(reversed([HealthTier1,HealthTier2,HealthTier3,HealthTier4,HealthTier5]))
