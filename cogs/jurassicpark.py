@@ -180,7 +180,7 @@ class JurrasicPark(commands.Cog):
             await msg.edit(embed=e)
             await my_channel.send(f"{ctx.message.author.name} edytował {dino.name} -> {tiers}")
             
-
+        Dbh.session.commit()
         
 
     async def loop(self):
@@ -193,9 +193,9 @@ class JurrasicPark(commands.Cog):
         Dbh.init()
         Dbh.createTables()
 
-        dl = StaticDino.getSetDinos(is_random=False)
-        for d in dl:
-            d.fixOverall()
+        # dl = StaticDino.getSetDinos(is_random=False)
+        # for d in dl:
+        #     d.fixOverall()
 
         
         StaticDino.updateDinos()
