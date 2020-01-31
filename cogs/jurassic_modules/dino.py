@@ -1,7 +1,8 @@
 from .tiers import DAMAGE_TIERS, DEFENSE_TIERS, SPEED_TIERS, HEALTH_TIERS
 from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInteger, String, TIMESTAMP, Boolean, insert
 from ..utils.dbconnector import DatabaseHandler as Dbh
-
+from discord import Embed
+from .dino_info import DinoStatEmojis as DSE
 
 class Dino(Dbh.Base):
     __tablename__ = "dino"
@@ -23,7 +24,17 @@ class Dino(Dbh.Base):
         self.speed = round(SPEED_TIERS[sd.speed_tier].getValue(),2)
         self.health = HEALTH_TIERS[sd.health_tier].getValue()
         self.tier = sd.tier
-        
+    
+    def getEmbed(self):
+        dmg = DSE.emojis['damage']
+        deff = DSE.emojis['defense']
+        speed = DSE.emojis['speed']
+        health = DSE.emojis['health']
+        b = DSE.emojis['blank']
+        stats = f'{dmg}{self.damage}{b}{deff}{self.defense}{b}{health}{self.health}{b}{speed}{self.speed}'
+        e = Embed(title=f'{self.name.capitalize()} [Tier {self.tier+1}]',description=stats)
+        return e
+    
     def text(self):
         return f"[DINO {self.name}] \ndamage: {self.damage}\ndef: {self.defense}\nspeed: {self.speed}\nhp: {self.health}"
 

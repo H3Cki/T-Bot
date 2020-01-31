@@ -4,14 +4,21 @@ import random
 
 class PartTypes:
     HEAD = "head"
+    MEAT = "meat"
     BONE = "bones"
-    TAIL = "tail"
 
-    types = [HEAD,BONE,TAIL]
+    types = [HEAD,MEAT,BONE]
+    
+    name_to_idx = {
+        HEAD : 0,
+        MEAT : 1,
+        BONE : 2
+    }
+    
     emojis = {
         HEAD : "<:head:671895266520989781>",
-        BONE : "<:meat:671895522134458378>",
-        TAIL : "<:neuron:671896036654055425>"
+        MEAT : "<:meat:671895522134458378>",
+        BONE : "<:bones:672476713334341643>"
     }
 
 class ProfilePart(Dbh.Base):
@@ -28,7 +35,7 @@ class ProfilePart(Dbh.Base):
     
     @property
     def static_part(self):
-        return Dbh.session.query(StaticPart).filter(StaticPart.id == self.part_id).one()
+        return Dbh.session.query(StaticPart).filter(StaticPart.id == self.part_id).first()
 
     def getCount(self):
         result = 0
@@ -40,6 +47,10 @@ class ProfilePart(Dbh.Base):
 
     def delete(self):
         Dbh.session.delete(self)
+
+    @classmethod
+    def getAll(cls):
+        return Dbh.session.query(cls).all()
 
     @classmethod
     def getAllParts(cls,profile):
@@ -54,8 +65,7 @@ class StaticPart(Dbh.Base):
 
     id = Column(Integer, primary_key=True)
     dino_name = Column(String, ForeignKey('static_dino.name'))
-    name = Column(String)
-    type = Column(String)
+    type_idx = Column(Integer)
 
 
     @classmethod
@@ -64,29 +74,21 @@ class StaticPart(Dbh.Base):
         return res
 
     @classmethod
-    def getPart(cls,dino_name,type=None):
-        if type:
-            result = None
-            try:
-                result = Dbh.session.query(cls).filter(cls.dino_name == dino_name).filter(cls.type == type).first()
-            except Exception as e:
-                pass
-            return result
-        else:
-            results = result = Dbh.session.query(cls).filter(cls.dino_name == dino_name).all()
-            return results
+    def getPart(cls,dino_name,typ=None):
+        return Dbh.session.query(cls).filter(cls.dino_name == dino_name, cls.type_idx == typ).first()
+    
+
 
 
     @classmethod
     def updateParts(cls, dinolist):
         for dino in dinolist:
-            for type in PartTypes.types:
-                part = cls.getPart(dino.name,type)
+            for t in range(0,len(PartTypes.types)):
+                part = cls.getPart(dino.name,t)
                 if not part:
-                    p = cls(dino.name,type)
+                    p = cls(dino.name,t)
                     Dbh.session.add(p)
                     Dbh.session.commit()
-                    print(f"CREATED {p.name}")
 
 
     @classmethod
@@ -101,15 +103,30 @@ class StaticPart(Dbh.Base):
             unowned = static_parts
 
         ptd = random.choice(unowned)
-        po =ProfilePart(ptd,profile)
+        po = ProfilePart(ptd,profile)
         Dbh.session.add(po)
 
-        return po
+        return po,ptd
 
-    def __init__(self,dino_name,type):
+    @classmethod
+    def removeDinoPartComplelty(cls,dino):
+        for part in StaticPart.getAll():
+            if part.dino_name == dino.name:
+                for ppart in ProfilePart.getAll():
+                    if ppart.part_id == part.id:
+                        Dbh.session.delete(ppart)
+                        print(f"DELETED OWNED PART")
+                Dbh.session.delete(part)
+                print(f"DELETED {part.dino_name} {part.type}")
+                Dbh.session.commit()
+
+    def __init__(self,dino_name,type_idx):
         self.dino_name = dino_name
-        self.type = type
-        self.name = f"{self.dino_name.capitalize()} {self.type.capitalize()}"
+        self.type_idx = type_idx
+
+    @property
+    def type(self):
+        return PartTypes.types[self.type_idx]
 
     def give(self,profile):
         p =ProfilePart(self,profile)

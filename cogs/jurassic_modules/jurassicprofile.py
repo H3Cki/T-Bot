@@ -22,8 +22,12 @@ class JurassicProfile(Dbh.Base):
                 return result[0]
         except:
             pass
-
         return None
+    
+    @classmethod
+    def getProfileById(cls, prof_id):
+        return Dbh.session.query(cls).get(prof_id)
+
         
     @classmethod
     def getAll(cls):
@@ -44,6 +48,10 @@ class JurassicProfile(Dbh.Base):
         d = []
         for part in self.getAllParts():
             dino = StaticDino.getDino(part.static_part.dino_name)
+            if not dino:
+                part.delete()
+                Dbh.session.commit()
+                continue
             if dino not in d:
                 d.append(dino)
         return d
@@ -59,14 +67,14 @@ class JurassicProfile(Dbh.Base):
             if po:
                 owned.append(po)
 
-
         if len(owned) == 3:
             dino = Dino(static_dino,self)
-            print(dino.text())
+            self.addExp(10)
             Dbh.session.add(dino)
             for item in owned:
                 item.delete()
-        
+            return dino
+        return False
     def getPart(self,static_part):
         return ProfilePart.getPart(static_part,self)
 
@@ -79,9 +87,6 @@ class JurassicProfile(Dbh.Base):
 
     def text(self):
         return f"[PROFIL {self.id}]\n {self.member_id}] in {self.guild_id}: {self.exp} exp."
-
-    def print(self):
-        print(self.text())
 
     def getProfileImage(self):
         pass

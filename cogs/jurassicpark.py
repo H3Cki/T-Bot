@@ -4,11 +4,13 @@ import asyncio
 import logging
 from sqlalchemy.ext.declarative import declarative_base
 
+
 from .jurassic_modules.dino import Dino
 from .jurassic_modules.discovery import Discovery
 from .jurassic_modules.jurassicprofile import JurassicProfile as JP
 from .jurassic_modules.dino_info import StaticDino, DinoStatEmojis as DSE
 from .jurassic_modules.part_info import StaticPart,ProfilePart
+from .jurassic_modules.guild_settings import JGuildSettings
 
 import random
 from .utils.dbconnector import DatabaseHandler as Dbh
@@ -21,14 +23,126 @@ class JurrasicPark(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.rating = []
+        self.visitors = {}
+        
+    #
+    #
+    # GUILD SETTINGS HERE ---------------------------
+    #
+    #
+    
+    @commands.command(name='jsettings')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def jsettings(self,ctx):
+        gs = JGuildSettings.get(ctx.message.guild.id)
+        if not gs:
+            await ctx.send("No setting for this server")
+            return
+        
+        t = f"""guild_id : {gs.guild_id}
+        notif_channel: {gs.j_notif_channel}
+        voice_cat: {gs.j_voice_cat}
+        notify: {gs.notify}
+        active: {gs.active}"""
+        await ctx.send(t)
+
+
+    @commands.command(name='enablenotif')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def enablenotif(self,ctx):
+        gs = JGuildSettings.get(ctx.message.guild.id)
+        if not gs:
+            await ctx.send("No setting for this server")
+            return
+        gs.notify = True
+        Dbh.session.commit()
+        
+    @commands.command(name='disablenotif')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def disablenotif(self,ctx):
+        gs = JGuildSettings.get(ctx.message.guild.id)
+        if not gs:
+            await ctx.send("No setting for this server")
+            return
+        gs.notify = False
+        Dbh.session.commit()
+
+    @commands.command(name='setjnotif')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def setnotif(self,ctx):
+        gs = JGuildSettings.get(ctx.message.guild.id)
+        if not gs:
+            await ctx.send("No setting for this server")
+            return
+        
+        gs.j_notif_channel = ctx.message.channel.id
+        Dbh.session.commit()
+
+
+    @commands.command(name='setvoicecat')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def set_vcat(self,ctx,cat_id):
+        gs = JGuildSettings.get(ctx.message.guild.id)
+        if not gs:
+            await ctx.send("No setting for this server")
+            return
+        
+        gs.j_voice_cat = int(cat_id)
+        Dbh.session.commit()
+
+
+    #
+    #
+    # MODERATION AND TESTING ---------------------------
+    #
+    #
+
+    @commands.command(name='droptable')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def drop(self,ctx,table):
+        Dbh.session.execute(f"DROP TABLE {table};")
+        Dbh.session.commit()
+        print("DONE")
+        
+    @commands.command(name='createtables')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def drop(self,ctx,table):
+        Dbh.createTables()
+        print("READY")
+    
+    
+    @commands.command(name='allparts')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def allparts(self,ctx):
+        for part in StaticPart.getAll():
+            print(part.name)
+    
+    @commands.command(name='allpparts')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def allpparts(self,ctx):
+        for part in ProfilePart.getAll():
+            sp = part.static_part
+            print(sp.name)
+    
+
+    #
+    #
+    # MEMBER COMMANDS HERE ---------------------------
+    #
+    #
+
 
     @commands.command(name='jprofile')
     async def sendMemberProfileImage(self,ctx):
+        """
+        Shows member's jurassic profile
+        """
         profile = JP.getProfile(ctx.message.author)
         if profile:
             e = discord.Embed(title=f"{ctx.message.author.display_name}'s PROFILE",color=discord.Color.from_rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255)))
             e.add_field(name="Experience",value=profile.exp)
-
+            e.add_field(name="Dinos", value=f"{len(profile.getOwnedDinos())} owned\n{len(profile.getDiscoveries())} discovered")
+            e.add_field(name="Parts", value=f"{len(profile.getAllParts())} owned")
             await ctx.send(embed=e)
         else:
             await ctx.send("Nie posiadasz profilu Jurassic.")
@@ -36,6 +150,9 @@ class JurrasicPark(commands.Cog):
 
     @commands.command(name='army')
     async def member_dinos(self,ctx):
+        """
+        Shows dinos owned by member
+        """
         profile = JP.getProfile(ctx.message.author)
         if not profile:
             await ctx.send("Nie posiadasz profilu Jurassic.")
@@ -51,32 +168,14 @@ class JurrasicPark(commands.Cog):
             txt = f"{DSE.emojis['blank']} {DSE.emojis['damage']}{str(d.damage)}{DSE.emojis['blank']}{DSE.emojis['defense']}{str(d.defense)}{DSE.emojis['blank']}{DSE.emojis['health']}{str(d.health)}{DSE.emojis['blank']}{DSE.emojis['speed']}{str(d.speed)}"
             embed.add_field(name=f"`🦖` **{d.name.capitalize()}**#*{d.id}*  Tier {d.tier+1}",value=txt,inline=False)
 
-        # # for i,d in enumerate(dl):
-        # #     lines.append( (f"{i+1}. T{d.tier}", f"{d.name.capitalize()}#{d.id}", str(d.damage), str(d.defense), str(d.health), str(d.speed)) )
-
-        # for i,d in enumerate(dl):
-        #     lines.append( (f"{i+1}. T{d.tier} **{d.name.capitalize()}**#*{d.id}* {str(d.damage)}, {str(d.defense)}, {str(d.health)}, {str(d.speed)}") )
-
-        # # col_widths = [[] for _ in range(len(lines[0]))]
-        # # for line in lines:
-        # #     for i,col in enumerate(line):
-        # #         col_widths[i].append(len(col))
-
-        # # col_widths = [max(col) for col in col_widths]
-        # # print(col_widths)
-        # t = ""
-        # for line in lines:
-        #     #t += ''.join({elem}.ljust(col_widths[i],"-") for i,elem in enumerate(line))
-        #     t += line
-        #     t += '\n'
-        # embed.add_field(name=f"**Army**", value = t)
- 
-
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='eq')
+    @commands.command(name='lab')
     async def member_assembly(self,ctx):
+        """
+        Shows member's dino lab
+        """
         profile = JP.getProfile(ctx.message.author)
         if not profile:
             await ctx.send("Nie posiadasz profilu Jurassic.")
@@ -94,17 +193,47 @@ class JurrasicPark(commands.Cog):
             static_parts_req = dino.getPartsRequired()
             for sp in static_parts_req:
                 t += sp.getEmoji() + f"x{sp.getCount(profile)} "
-            embed.add_field(name=f"**{dino.name.capitalize()}** Tier {dino.tier+1}",value=t, inline= False)
+            print(t)
+            embed.add_field(name=f"**{dino.name.capitalize()}**",value=t, inline= False)
    
 
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='info')
+    @commands.command(name='dinos')
+    async def all_dinos(self,ctx):
+        """
+        Shows list of dinos discovered in given server
+        """
+        a = Discovery._getAllInGuild(ctx.message.guild.id).all()
+        embed = discord.Embed(title=f"{ctx.message.guild.name} - {len(a)} DISCOVERIES")
+        for disc in a:
+            dino = StaticDino.getDino(disc.dino_name)
+            profile = JP.getProfileById(disc.profile_id)
+            member = ctx.message.guild.get_member(profile.member_id)
+            t = ''
+            if not dino:
+                t = ' RIP'
+            embed.add_field(name=f"🦖**{disc.dino_name.upper()}**"+t, value=f"{DSE.emojis['blank']} *Discovered by {member.display_name}*")
+        await ctx.send(embed=embed)
+        
+    @commands.command(name='dinoinfo')
     async def dino_info(self,ctx, dino_name):
-        dino = StaticDino.getDino(dino_name)
+        """
+        Shows profile of a dino by its name
+        """
+        dino = StaticDino.getDino(dino_name.lower())
         await ctx.send(embed=dino.getEmbed())
 
+    @commands.command(name='deletedino')
+    async def delete_info(self,ctx, dino_name):
+        """
+        Shows profile of a dino by its name
+        """
+        dino = StaticDino.getDino(dino_name.lower())
+        StaticDino.removeFromFile([dino,])
+        Dbh.session.commit()
+        await ctx.send("deleted")
 
     @commands.command(name='ratedinos')
     async def ratedinos(self,ctx):
@@ -181,34 +310,58 @@ class JurrasicPark(commands.Cog):
             await my_channel.send(f"{ctx.message.author.name} edytował {dino.name} -> {tiers}")
             
         Dbh.session.commit()
+            
         
+    async def shuffle_channels(self,g,gs):
+        for vc in g.voice_channels:
+            if not vc.category:
+                continue
+            if vc.category.id == gs.j_voice_cat:
+                await vc.edit(name=f"{DSE.emojis['dino1']} {StaticDino.getRandom().name.capitalize()}")
+
+    @commands.command(name='shuffle')
+    @commands.has_guild_permissions(manage_guild=True)
+    async def shuffle_command(self,ctx):
+        gs = JGuildSettings.get(ctx.message.guild.id)
+        await self.shuffle_channels(ctx.message.guild,gs)
 
     async def loop(self):
-        g = self.bot.get_guild(551005738877583381)
-        for vc in g.voice_channels:
-            await vc.edit(name=StaticDino.getRandom().name)
-        await asyncio.sleep(60)
+        while True:
+            for g in self.bot.guilds:
+                self.visitors[g.id] = {}
+                gs = JGuildSettings.get(g.id)
+                if not gs.active or not gs.j_voice_cat:
+                    continue
+                
+                await self.shuffle_channels(g,gs)
+                
+            await asyncio.sleep(3600)
 
     def setupDB(self):
-        Dbh.init()
+        Dbh.init() 
+        #Dbh.session.execute('DROP TABLE static_part;')
+        #Dbh.session.execute('DROP TABLE profile_part;')
         Dbh.createTables()
-
-        # dl = StaticDino.getSetDinos(is_random=False)
-        # for d in dl:
-        #     d.fixOverall()
-
         
         StaticDino.updateDinos()
         StaticPart.updateParts(StaticDino.getAll())
         Dbh.session.commit()
-
+        
+        print(f"{len(StaticDino.getAll())} Dinos IN TOTAL")
+        print(f"{len(StaticPart.getAll())} PARTS IN TOTAL")
     @commands.Cog.listener()
-    async def on_ready(self):   
+    async def on_ready(self):
+        for guild in self.bot.guilds:
+            gs = JGuildSettings.get(guild.id)
+            if not gs:
+                o = JGuildSettings(guild.id)
+                Dbh.session.add(o)
+                Dbh.session.commit()
         self.bot.loop.create_task(self.loop())
     @commands.Cog.listener()
     async def on_voice_state_update(self,member,before,after):
-        veh(member,before,after,self.bot)
-    
+        v = veh(member,before,after,self)
+        await v.handle()
 
 def setup(bot):
     cog = JurrasicPark(bot)

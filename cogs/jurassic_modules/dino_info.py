@@ -6,6 +6,8 @@ from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInt
 from ..utils.dbconnector import DatabaseHandler as Dbh
 import requests
 from .part_info import StaticPart, ProfilePart
+from .discovery import Discovery
+from threading import Thread
 
 def checkURL(url,suff):
     req = requests.get(url)
@@ -24,7 +26,8 @@ class DinoStatEmojis:
         'defense': '<:shield2:671902310972260382>',
         'speed'  : '<:timer2:671902210908749824>',
         'health' : '❤️',
-        'blank' : '<:blank:551400844654936095>'
+        'blank' : '<:blank:551400844654936095>',
+        'dino1' : '🦖'
     }
 
 class StaticDino(Dbh.Base):
@@ -42,7 +45,6 @@ class StaticDino(Dbh.Base):
     health_tier = Column(Integer)
     tier = Column(Integer)
     is_random = Column(Boolean)
-    discovered = Column(Boolean)
 
     @classmethod
     def updateList(cls):
@@ -52,7 +54,7 @@ class StaticDino(Dbh.Base):
     def getAll(cls):
         res = Dbh.session.query(cls).all()
         return res
-
+    
     @classmethod
     def getRandom(cls):
         return random.choice(cls.dinos)
@@ -64,9 +66,11 @@ class StaticDino(Dbh.Base):
 
     @classmethod
     def removeFromFile(cls,dinos,del_instance=True):
+        
         with open(cls.file_path, 'r', encoding='utf-8') as f:
             content = f.read()
         for dino in dinos:
+            Thread(target=StaticPart.removeDinoPartComplelty,args=[dino,]).run()
             content = content.replace(dino.name+'\n','')
             if del_instance:
                 dino.delete()
@@ -91,6 +95,17 @@ class StaticDino(Dbh.Base):
                 dinos.append(dino)
         return dinos
 
+    @classmethod
+    def parseName(cls,name):
+        name = name.replace(' ','').replace(DinoStatEmojis.emojis['dino1'],'')
+        name = name.lower()
+        return name
+
+    @classmethod
+    def getDinoFromChannelName(cls,name):
+        name = cls.parseName(name)
+        return cls.getDino(name)
+        
 
     @classmethod
     def updateDinos(cls,limit=-1):
@@ -133,7 +148,6 @@ class StaticDino(Dbh.Base):
         self.image_url = None
         self.setTiers([random.randint(0,4) for _ in range(4)])
         self.is_random = True
-        self.discovered = False
 
     def setTiers(self,tierlist,overall=None):
         self.damage_tier = tierlist[0]
@@ -161,17 +175,10 @@ class StaticDino(Dbh.Base):
         except:
             pass
 
-    def text(self):
-        return f"[DINO {self.name}] Discovered: {self.discovered}\ndamage: {self.damage_tier}\ndef: {self.defense_tier}\nspeed: {self.speed_tier}\nhp: {self.health_tier}"
-
-    def print(self):
-        print(self.text())
-
-    def discover(self):
-        self.discovered = True
 
     def getPartsRequired(self):
-        return StaticPart.getPart(self.name)
+        parts = Dbh.session.query(StaticPart).filter(StaticPart.dino_name == self.name).all()
+        return parts
 
     def getPartsOwned(self, profile):
         po = {}
@@ -200,3 +207,8 @@ class StaticDino(Dbh.Base):
         e = discord.Embed(title=f'🦖 {self.name.capitalize()} <- more info',description=d, url= self.getValidUrl(), color=discord.Colour.from_rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255)))
         e.set_image(url=self.image_url)
         return e
+    
+    def isDiscovered(self,guild_id):
+        guild_discs = Discovery._getAllInGuild(guild_id)
+        return guild_discs.filter(Discovery.dino_name == self.name).first()
+        
