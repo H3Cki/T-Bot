@@ -193,7 +193,6 @@ class JurrasicPark(commands.Cog):
             static_parts_req = dino.getPartsRequired()
             for sp in static_parts_req:
                 t += sp.getEmoji() + f"x{sp.getCount(profile)} "
-            print(t)
             embed.add_field(name=f"**{dino.name.capitalize()}**",value=t, inline= False)
    
 

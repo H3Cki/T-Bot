@@ -33,14 +33,14 @@ class voiceStateUpdateHandler:
         if self.after.channel == self.before.channel:
             return
         
-        if self.member.id not in self.visitors.keys():
+        if self.member.id not in self.jcog.visitors.keys():
             self.jcog.visitors[self.member.guild.id] = {}
-            self.jcog.visitors[self.member.guild.id][member.id] = []
+            self.jcog.visitors[self.member.guild.id][self.member.id] = []
             
-        if self.after.channel.id in self.jcog.visitors[self.member.guild.id][member.id]:
+        if self.after.channel.id in self.jcog.visitors[self.member.guild.id][self.member.id]:
             return
         
-        self.jcog.visitors[self.member.guild.id][member.id].append(self.after.channel.id)
+        self.jcog.visitors[self.member.guild.id][self.member.id].append(self.after.channel.id)
         
         static_dino = StaticDino.getDinoFromChannelName(self.after.channel.name)
         
@@ -78,6 +78,9 @@ class voiceStateUpdateHandler:
                 if channel:  
                     e = dinoDropEmbed(self.member, dino)
                     e.set_thumbnail(url=static_dino.image_url)
-                    await channel.send(self.member.mention,embed = e)
+                    try:
+                        await self.member.send(self.member.mention,embed = e)
+                    except:
+                        await channel.send(self.member.mention,embed = e)
             
         Dbh.commit()
