@@ -9,7 +9,7 @@ class DatabaseHandler:
     session = None
 
     @classmethod
-    def init(cls,url="sqlite:///db/db1.db"):
+    def init(cls,url="sqlite:///db1.db"):
         cls.engine = create_engine(url,echo=False)
         cls.newSession()
 

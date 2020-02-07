@@ -3,13 +3,14 @@ from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInt
 from ..utils.dbconnector import DatabaseHandler as Dbh
 from discord import Embed
 from .dino_info import DinoStatEmojis as DSE
+from .dino_info import StaticDino
 
 class Dino(Dbh.Base):
     __tablename__ = "dino"
 
     id = Column(Integer,primary_key=True)
     name = Column(String, ForeignKey('static_dino.name'))
-    profile_id = Column(String, ForeignKey('jurassicprofile.id'))
+    profile_id = Column(Integer, ForeignKey('jurassicprofile.id'))
     damage = Column(Integer)
     defense = Column(Integer)
     speed = Column(Float)
@@ -25,6 +26,14 @@ class Dino(Dbh.Base):
         self.health = HEALTH_TIERS[sd.health_tier].getValue()
         self.tier = sd.tier
     
+    @property
+    def static_dino(self):
+        return Dbh.session.query(StaticDino).filter(StaticDino.name == self.name).first()
+    
+    @property
+    def power_level(self):
+        return (self.damage+self.defense+self.health)*self.speed
+    
     def getEmbed(self):
         dmg = DSE.emojis['damage']
         deff = DSE.emojis['defense']
@@ -37,6 +46,7 @@ class Dino(Dbh.Base):
     
     def text(self):
         return f"[DINO {self.name}] \ndamage: {self.damage}\ndef: {self.defense}\nspeed: {self.speed}\nhp: {self.health}"
+
 
     def die(self):
         Dbh.session.delete(self)

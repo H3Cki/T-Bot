@@ -4,19 +4,16 @@ import random
 from cogs.utils.google_img import get_google_img
 from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInteger, String, TIMESTAMP, Boolean, insert
 from ..utils.dbconnector import DatabaseHandler as Dbh
+from .tiers import Tier
 import requests
 from .part_info import StaticPart, ProfilePart
 from .discovery import Discovery
 from threading import Thread
 
-def checkURL(url,suff):
+def checkURL(url):
     req = requests.get(url)
     if req.status_code == 200:
-        return url
-
-    req = requests.get(url+suff)
-    if req.status_code == 200:
-        return url   
+        return req.history[-1].url
 
     return None
 
@@ -27,7 +24,8 @@ class DinoStatEmojis:
         'speed'  : '<:timer2:671902210908749824>',
         'health' : '❤️',
         'blank' : '<:blank:551400844654936095>',
-        'dino1' : '🦖'
+        'dino1' : '🦖',
+        'wiki' : '<:wiki:672823456030654476>'
     }
 
 class StaticDino(Dbh.Base):
@@ -60,6 +58,25 @@ class StaticDino(Dbh.Base):
         return random.choice(cls.dinos)
 
     @classmethod
+    def getSetTierDinos(cls,tier_idx):
+        al = cls.getSetDinos()
+        return [dino for dino in al if dino.tier == tier_idx]
+
+    @classmethod
+    def getRandomSetDinoTierWise(cls):
+        found = False
+        al = cls.getSetDinos()
+        t1 = [dino for dino in al if dino.tier == 0]
+        t2 = [dino for dino in al if dino.tier == 1]
+        t3 = [dino for dino in al if dino.tier == 2]
+        t4 = [dino for dino in al if dino.tier == 3]
+        t5 = [dino for dino in al if dino.tier == 4]
+        ts = [t1,t2,t3,t4,t5]
+
+        tier = Tier.getRandomTier()
+        return random.choice(ts[tier])
+
+    @classmethod
     def getDino(cls,dino_name):
         return Dbh.session.query(cls).get(dino_name)
      
@@ -72,6 +89,7 @@ class StaticDino(Dbh.Base):
         for dino in dinos:
             Thread(target=StaticPart.removeDinoPartComplelty,args=[dino,]).run()
             content = content.replace(dino.name+'\n','')
+            print(f"REMOVING {dino.name}")
             if del_instance:
                 dino.delete()
         with open(cls.file_path, 'w', encoding='utf-8') as f:
@@ -97,8 +115,11 @@ class StaticDino(Dbh.Base):
 
     @classmethod
     def parseName(cls,name):
-        name = name.replace(' ','').replace(DinoStatEmojis.emojis['dino1'],'')
+        alphabet = 'qwertyuiopasdfghjklzxcvbnm'
         name = name.lower()
+        for char in name:
+            if char not in alphabet:
+                name = name.replace(char,'')
         return name
 
     @classmethod
@@ -113,6 +134,17 @@ class StaticDino(Dbh.Base):
         with open(cls.file_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
+        with open(cls.file_path, 'w', encoding='utf-8') as f:
+            f.write(content.lower())
+            
+        with open(cls.file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # d = []
+        # for dino in cls.getSetDinos(is_random=True):
+        #     d.append(dino)
+        # cls.removeFromFile(d,del_instance=True)
+        
         
         dinos = content.split('\n')
         dinos = [dino.lower() for dino in dinos if len(dino) > 2]
@@ -139,7 +171,6 @@ class StaticDino(Dbh.Base):
         
         cls.removeFromFile(to_remove,del_instance=False)
         Dbh.session.commit()
-        cls.updateList()
 
     def __init__(self,dino_name):
         self.name = dino_name
@@ -163,17 +194,29 @@ class StaticDino(Dbh.Base):
         self.tier = round((self.damage_tier+self.defense_tier+self.speed_tier+self.health_tier)/len(tierlist) )
 
     def setup(self):
-        self.link_pl = checkURL('https://pl.wikipedia.org/wiki/'+self.name,suff='_(dinozaur)')
-        self.link_en = checkURL('https://en.wikipedia.org/wiki/'+self.name,suff='_(dinosaur)')
+        self.link_pl = checkURL('https://pl.wikipedia.org/wiki/'+self.name)
+        self.link_en = checkURL('https://en.wikipedia.org/wiki/'+self.name)
 
-        query = self.name
+            
+        query = self.name.replace('saurus','zaur').replace('docus','dok')
         if len(query) <= 6:
-            query += " dinosaur"
+            query += " dinozaur"
         try:
             img_url = get_google_img(query)
             self.image_url = img_url
         except:
             pass
+    
+        if self.image_url == None:
+        
+            query = self.name
+            if len(query) <= 6:
+                query += " dinosaur"
+            try:
+                img_url = get_google_img(query)
+                self.image_url = img_url
+            except:
+                pass
 
 
     def getPartsRequired(self):
@@ -188,7 +231,7 @@ class StaticDino(Dbh.Base):
         return profile_parts
         
     def isValid(self):
-        if self.image_url and (self.link_en or self.link_en):
+        if self.image_url and (self.link_en or self.link_en) and len(self.name) < 17:
             return True
         return False
 

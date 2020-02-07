@@ -4,6 +4,9 @@ from .discovery import Discovery
 from .part_info import StaticPart,ProfilePart, PartTypes
 from .dino import Dino
 from .dino_info import StaticDino
+from .resources import Resources
+from ..botinstance import bot
+
 class JurassicProfile(Dbh.Base):
     __tablename__ = "jurassicprofile"
 
@@ -30,10 +33,14 @@ class JurassicProfile(Dbh.Base):
 
         
     @classmethod
-    def getAll(cls):
+    def getAll(cls,guild_id=None):
         result = None
         try:
-            result = Dbh.session.query(cls).all()
+            result = Dbh.session.query(cls)
+            if guild_id:
+                result = result.filter(cls.guild_id == guild_id)
+            
+            result = result.all()
         except:
             pass
         return result
@@ -42,7 +49,26 @@ class JurassicProfile(Dbh.Base):
         self.member_id = member_id
         self.guild_id = guild_id
         self.exp = 0.0
+    
+    @property
+    def points(self):
+        return int(sum([dino.power_level for dino in self.getOwnedDinos()])) + self.resources.value
+    
+    @property
+    def pointsAsText(self):
+        return f"{self.points} ({int(sum([dino.power_level for dino in self.getOwnedDinos()]))} - Dinos, {self.resources.value} - Resources)"
 
+    @property
+    def resources(self):
+        return Resources.getResources(self)
+
+    @property
+    def guild(self):
+        return bot.get_guild(self.guild_id)
+    
+    @property
+    def member(self):
+        return self.guild.get_member(self.member_id)
 
     def getDinosWithParts(self):
         d = []
@@ -67,7 +93,7 @@ class JurassicProfile(Dbh.Base):
             if po:
                 owned.append(po)
 
-        if len(owned) == 3:
+        if set(static_parts_req).issubset(set([e.static_part for e in owned])):
             dino = Dino(static_dino,self)
             self.addExp(10)
             Dbh.session.add(dino)
@@ -75,9 +101,13 @@ class JurassicProfile(Dbh.Base):
                 item.delete()
             return dino
         return False
+    
     def getPart(self,static_part):
         return ProfilePart.getPart(static_part,self)
 
+    def eraseAllParts(self):
+        for part in ProfilePart.getAllParts(self):
+            part.delete()
 
     def getAllParts(self):
         return ProfilePart.getAllParts(self)
@@ -87,12 +117,6 @@ class JurassicProfile(Dbh.Base):
 
     def text(self):
         return f"[PROFIL {self.id}]\n {self.member_id}] in {self.guild_id}: {self.exp} exp."
-
-    def getProfileImage(self):
-        pass
-
-    def getProfileEmbed(self):
-        pass
 
     def getDiscoveries(self):
         result = []
@@ -109,13 +133,10 @@ class JurassicProfile(Dbh.Base):
         except:
             pass
         return result
+    
+    def delete(self):
+        Dbh.session.delete(self)
 
-    def printOwnedDinos(self):
-        parts = self.getOwnedDinos()
-        t = f"[{self.member_id} DINOS OWNED]"
-        for part in parts:
-            t += '\n' + part.name
-        print(t)
 
 
 

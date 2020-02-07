@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInt
 from ..utils.dbconnector import DatabaseHandler as Dbh
 from .discovery import Discovery
 from .dino import Dino
+from ..botinstance import bot
 
 class JGuildSettings(Dbh.Base):
     __tablename__ = "jguildsettings"
@@ -18,8 +19,23 @@ class JGuildSettings(Dbh.Base):
         self.j_voice_cat = False
         self.notify = False
         self.active = True
+    
+    @property
+    def guild(self):
+        return bot.get_guild(self.guild_id)
+    
+    @property
+    def channel(self):
+        return self.guild.get_channel(self.j_notif_channel)
+    
+    async def send(self,content="",embed=None):
+        channel = self.channel
+        if not self.active or not self.notify or not self.j_notif_channel or not channel:
+            return
+        await channel.send(content,embed=embed)
         
     @classmethod
     def get(cls,gid):
         return Dbh.session.query(cls).get(gid)
+        
     

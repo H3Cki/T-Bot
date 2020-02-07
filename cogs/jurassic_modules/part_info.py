@@ -18,7 +18,10 @@ class PartTypes:
     emojis = {
         HEAD : "<:head:671895266520989781>",
         MEAT : "<:meat:671895522134458378>",
-        BONE : "<:bones:672476713334341643>"
+        BONE : "<:bones:672476713334341643>",
+        HEAD+"void" : '<:head_void:673959867890794535> ',
+        MEAT+"void" : '<:meat_void:673959534783496263> ',
+        BONE+"void" : '<:bones_void:673959534661992494> '
     }
 
 class ProfilePart(Dbh.Base):
@@ -37,10 +40,15 @@ class ProfilePart(Dbh.Base):
     def static_part(self):
         return Dbh.session.query(StaticPart).filter(StaticPart.id == self.part_id).first()
 
+    @property
+    def dropText(self):
+        sp = self.static_part
+        return f"{sp.getEmoji()} **{sp.name}**"
+
     def getCount(self):
         result = 0
         try:
-            result = Dbh.session.query(ProfilePart).filter(ProfilePart.par_id == self.part_id, ProfilePart.profile_id == self.profile_id).count()
+            result = Dbh.session.query(ProfilePart).filter(ProfilePart.part_id == self.part_id, ProfilePart.profile_id == self.profile_id).count()
         except Exception as e:
             pass
         return result
@@ -78,8 +86,6 @@ class StaticPart(Dbh.Base):
         return Dbh.session.query(cls).filter(cls.dino_name == dino_name, cls.type_idx == typ).first()
     
 
-
-
     @classmethod
     def updateParts(cls, dinolist):
         for dino in dinolist:
@@ -94,17 +100,20 @@ class StaticPart(Dbh.Base):
     @classmethod
     def drop(cls,dino,profile):
         static_parts = dino.getPartsRequired()
-        unowned = []
-        for sp in static_parts:
-            if not profile.getPart(sp):
-                unowned.append(sp)
-
+        
+        if random.randint(0,100) <= 60:
+            unowned = []
+            for sp in static_parts:
+                if not profile.getPart(sp):
+                    unowned.append(sp)
+        else:
+            unowned = static_parts
+            
         if len(unowned) == 0:
             unowned = static_parts
 
         ptd = random.choice(unowned)
         po = ProfilePart(ptd,profile)
-        Dbh.session.add(po)
 
         return po,ptd
 
@@ -125,6 +134,14 @@ class StaticPart(Dbh.Base):
         self.type_idx = type_idx
 
     @property
+    def name(self):
+        return f"**{self.dino_name.capitalize()}** {self.type}"
+
+    @property
+    def dropText(self):
+        return f"{self.getEmoji()} {self.name}"
+
+    @property
     def type(self):
         return PartTypes.types[self.type_idx]
 
@@ -132,8 +149,8 @@ class StaticPart(Dbh.Base):
         p =ProfilePart(self,profile)
         Dbh.session.add(p)
 
-    def getEmoji(self):
-        return PartTypes.emojis[self.type]
+    def getEmoji(self,extra=""):
+        return PartTypes.emojis[self.type+extra]
 
     def getCount(self, profile):
         return Dbh.session.query(ProfilePart).filter(ProfilePart.profile_id == profile.id, ProfilePart.part_id == self.id).count()
