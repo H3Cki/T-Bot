@@ -24,49 +24,6 @@ class PartTypes:
         BONE+"void" : '<:bones_void:673959534661992494> '
     }
 
-class ProfilePart(Dbh.Base):
-    __tablename__ = "profile_part"
-
-    id = Column(Integer, primary_key=True)
-    part_id = Column(Integer, ForeignKey('static_part.id'))
-    profile_id = Column(Integer, ForeignKey('jurassicprofile.id'))
-
-    def __init__(self,part,profile):
-        self.part_id = part.id
-        self.profile_id = profile.id
-        self._static_part = part
-    
-    @property
-    def static_part(self):
-        return Dbh.session.query(StaticPart).filter(StaticPart.id == self.part_id).first()
-
-    @property
-    def dropText(self):
-        sp = self.static_part
-        return f"{sp.getEmoji()} **{sp.name}**"
-
-    def getCount(self):
-        result = 0
-        try:
-            result = Dbh.session.query(ProfilePart).filter(ProfilePart.part_id == self.part_id, ProfilePart.profile_id == self.profile_id).count()
-        except Exception as e:
-            pass
-        return result
-
-    def delete(self):
-        Dbh.session.delete(self)
-
-    @classmethod
-    def getAll(cls):
-        return Dbh.session.query(cls).all()
-
-    @classmethod
-    def getAllParts(cls,profile):
-        return Dbh.session.query(cls).filter(cls.profile_id == profile.id).all()
-
-    @classmethod
-    def getPart(cls,sp, profile):
-        return Dbh.session.query(cls).filter(cls.profile_id == profile.id, cls.part_id == sp.id).first()
 
 class StaticPart(Dbh.Base):
     __tablename__ = "static_part"

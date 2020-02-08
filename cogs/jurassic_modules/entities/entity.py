@@ -3,56 +3,62 @@ from ...utils.dbconnector import DatabaseHandler as Dbh
 from ..tiers import Tier
 from ..jurassicprofile import JurassicProfile as JP
 
-class ProfileItem(Dbh.Base):
+class Droppable:
+    def drop(self, profile):
+        profile_me = ProfileEntity(profile,self)
+        Dbh.session.add(profile_me)
+    
+
+class ProfileEntity(Dbh.Base):
     # MAPPER ATTRIBUTES -------------------- #
     
-    __tablename__ = "profile_item"
+    __tablename__ = "profile_entity"
     
     id = Column(Integer, primary_key=True)
     profile_id = Column(Integer, ForeignKey('jurassicprofile.id'))
-    static_item_id = Column(Integer, ForeignKey('item.id'))
+    entity_id = Column(Integer, ForeignKey('entity.id'))
 
     # OBJECT METHODS AND PROPERTIES -------- #
     
-    def __init__(self,profile,static_item):
+    def __init__(self,profile,entity):
         self.profile_id = profile.id
-        self.static_item_id = static_item.id
+        self.entity_id = entity.id
 
     @property
     def profile(self):
         return JP.getProfile(self.profile_id)
     
     @property
-    def item(self):
-        return StaticItem.getItem(self.static_item_id)
+    def entity(self):
+        return Entity.getEntity(self.entity_id)
 
     # CLASS METHODS ------------------------ #
     
     @classmethod
-    def getAllProfileItems(cls,profile):
+    def getAllProfileEntitys(cls,profile):
         return Dbh.session.query(cls).filter(cls.profile_id == profile.id).all()
     
     @classmethod
-    def getProfileItems(self,profile,static_item):
-        return Dbh.session.query(cls).filter(cls.profile_id == profile.id, cls.static_item_id == static_item.id).all()
+    def getProfileEntitys(self,profile,entity):
+        return Dbh.session.query(cls).filter(cls.profile_id == profile.id, cls.entity_id == entity.id).all()
     
     @classmethod
-    def getProfileItem(self,profile,static_item):
-        return Dbh.session.query(cls).filter(cls.profile_id == profile.id, cls.static_item_id == static_item.id).first()
+    def getProfileEntity(self,profile,entity):
+        return Dbh.session.query(cls).filter(cls.profile_id == profile.id, cls.entity_id == entity.id).first()
 
 
-class StaticItem(Dbh.Base):
+class Entity(Dbh.Base):
     # CLASS ATTRIBUTES --------------------- #
     
-    TYPE   = "item"
-    NAME   = "Basic Item"
-    EMOJI = ('📦',)
+    TYPE   = "entity"
+    NAME   = "Basic Entity"
+    EMOJI  = '📦'
     TIERED = True
     EXTRAS = []
     
     # MAPPER ATTRIBUTES -------------------- #
     
-    __tablename__ = "item"
+    __tablename__ = "entity"
     id = Column(Integer, primary_key=True)
     tier_idx = Column(Integer)
     type = Column(String)
@@ -64,7 +70,7 @@ class StaticItem(Dbh.Base):
     
     # OBJECT METHODS AND PROPERTIES -------- #
     
-    def __init__(self,tier_idx=0):
+    def __init__(self,tier_idx=None):
         self.tier_idx = tier_idx
         self.type = self.__class__.TYPE
         for extra in self.__class__.EXTRAS:
@@ -79,14 +85,11 @@ class StaticItem(Dbh.Base):
     def finalize(self):
         pass
     
-    async def use(self, ctx):
+    async def act(self, ctx):
         a = self.requirements()
         b = self.inner_use()
         c = self.finalize()
         
-    def drop(self, profile):
-        profile_me = ProfileItem(profile,self)
-        Dbh.session.add(profile_me)
     
     
     @property
@@ -95,19 +98,22 @@ class StaticItem(Dbh.Base):
             
     @property
     def emoji(self):
-        return self.__class__.EMOJI[self.tier_idx]
-    
+        if self.__class__.TIERED:  
+            return self.__class__.EMOJI[self.tier_idx]
+        else:
+            return self.__class__.EMOJI
+        
     @property
     def dropText(self):
         text = f"{self.emoji} **{self.name}**"
         if self.__class__.TIERED:
-            text += f" Tier{self.tier_idx+1}"
+            text += f" Tier {self.tier_idx+1}"
         return text
     
     # CLASS METHODS ------------------------ #
 
     @classmethod
-    def getItem(cls,id):
+    def getEntity(cls,id):
         return Dbh.session.query(cls).filter(cls.id == id).one()
 
     @classmethod
@@ -119,12 +125,12 @@ class StaticItem(Dbh.Base):
         if cls.TIERED:
             tier = Tier.getRandomTier()
         else:
-            tier = 0
+            tier = None
         
         return Dbh.session.query(cls).filter(cls.tier_idx == tier).one()
     
     @classmethod
-    def updateItems(cls):
+    def updateEntitys(cls):
         pass
     
     @classmethod

@@ -284,7 +284,7 @@ class JurrasicPark(commands.Cog):
         profile = JP.getProfile(target)
         if profile:
             e = discord.Embed(title=f"{ctx.message.author.display_name}'s PROFILE",color=discord.Color.from_rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255)))
-            e.set_thumbnail(url=target.avatar_url_as('png'))
+            e.set_thumbnail(url=target.avatar_url_as(format='png'))
             e.add_field(name="Resources (Shit, Wood, Gold)",value=profile.resources.asText(),inline=False)
             e.add_field(name="Value",value=profile.pointsAsText,inline=False)
             e.add_field(name="Dinos", value=f"{len(profile.getOwnedDinos())} owned\n{len(profile.getDiscoveries())} discovered")
@@ -610,7 +610,7 @@ class JurrasicPark(commands.Cog):
         #Dbh.session.execute('DROP TABLE static_part;')
         #Dbh.session.execute('DROP TABLE profile_part;')
         Dbh.createTables()
-        StaticDino.updateDinos()
+        StaticDino.updateDinos(limit=10)
         
         StaticPart.updateParts(StaticDino.getAll())
         Resources.updateResources(JP.getAll())

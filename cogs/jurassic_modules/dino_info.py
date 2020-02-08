@@ -134,11 +134,11 @@ class StaticDino(Dbh.Base):
         with open(cls.file_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        with open(cls.file_path, 'w', encoding='utf-8') as f:
-            f.write(content.lower())
+        # with open(cls.file_path, 'w', encoding='utf-8') as f:
+        #     f.write(content.lower())
             
-        with open(cls.file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
+        # with open(cls.file_path, 'r', encoding='utf-8') as f:
+        #     content = f.read()
         
         # d = []
         # for dino in cls.getSetDinos(is_random=True):
@@ -164,7 +164,7 @@ class StaticDino(Dbh.Base):
                 if new_dino.isValid():
                     c += 1
                     Dbh.session.add(new_dino)
-                    Dbh.session.commit()
+                    #Dbh.session.commit()
                 else:
                     to_remove.append(new_dino)
 
