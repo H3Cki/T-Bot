@@ -1,4 +1,3 @@
-from .tiers import DAMAGE_TIERS, DEFENSE_TIERS, SPEED_TIERS, HEALTH_TIERS
 from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInteger, String, TIMESTAMP, Boolean, insert
 from ..utils.dbconnector import DatabaseHandler as Dbh
 from discord import Embed
@@ -20,11 +19,11 @@ class Dino(Dbh.Base):
     def __init__(self,sd,profile):
         self.name = sd.name
         self.profile_id = profile.id
-        self.damage = DAMAGE_TIERS[sd.damage_tier].getValue()
-        self.defense = DEFENSE_TIERS[sd.defense_tier].getValue()
-        self.speed = round(SPEED_TIERS[sd.speed_tier].getValue(),2)
-        self.health = HEALTH_TIERS[sd.health_tier].getValue()
-        self.tier = sd.tier
+        self.damage = 0
+        self.defense = 0
+        self.speed = 0
+        self.health = 0
+        self.tier = 0
     
     @property
     def static_dino(self):
@@ -50,7 +49,6 @@ class Dino(Dbh.Base):
 
     def die(self):
         Dbh.session.delete(self)
-
 
     def getCount(self):
         result = []

@@ -6,7 +6,6 @@ from .resources import Rewards
 from ..utils.dbconnector import DatabaseHandler as Dbh
 from .guild_settings import JGuildSettings
 from .embeds import *
-#from .chest import DinoChest
 import discord
 from datetime import datetime, timedelta
 import random

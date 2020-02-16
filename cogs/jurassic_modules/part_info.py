@@ -42,7 +42,6 @@ class StaticPart(Dbh.Base):
     def getPart(cls,dino_name,typ=None):
         return Dbh.session.query(cls).filter(cls.dino_name == dino_name, cls.type_idx == typ).first()
     
-
     @classmethod
     def updateParts(cls, dinolist):
         for dino in dinolist:

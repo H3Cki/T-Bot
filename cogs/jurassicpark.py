@@ -2,23 +2,26 @@ from discord.ext import commands
 import discord
 import asyncio
 import logging
+import random
+from datetime import datetime, timedelta
+
 from sqlalchemy.ext.declarative import declarative_base
+from .utils.dbconnector import DatabaseHandler as Dbh
+
+# from .jurassic_modules.dino import Dino
 
 
-from .jurassic_modules.dino import Dino
+
+# from .jurassic_modules.jmap import JMap
+# from .jurassic_modules.resources import *
+# from .jurassic_modules.embeds import *
+# from .jurassic_modules.event_handler import voiceStateUpdateHandler as veh
+
+from .jurassic_modules.guild_settings import JGuildSettings
 from .jurassic_modules.discovery import Discovery
 from .jurassic_modules.jurassicprofile import JurassicProfile as JP
 from .jurassic_modules.dino_info import StaticDino, DinoStatEmojis as DSE
-from .jurassic_modules.part_info import StaticPart,ProfilePart
-from .jurassic_modules.guild_settings import JGuildSettings
-from .jurassic_modules.jmap import JMap
-from .jurassic_modules.resources import *
-#from .jurassic_modules.chest import DinoChest, Key
-from .jurassic_modules.embeds import *
-import random
-from .utils.dbconnector import DatabaseHandler as Dbh
-from .jurassic_modules.event_handler import voiceStateUpdateHandler as veh
-from datetime import datetime, timedelta
+
 
 
 class JurrasicPark(commands.Cog):
@@ -606,23 +609,24 @@ class JurrasicPark(commands.Cog):
             await asyncio.sleep(60)
 
     def setupDB(self):
-        Dbh.init() 
+        Dbh.init()
+        Dbh.Base.metadata.clear()
         #Dbh.session.execute('DROP TABLE static_part;')
         #Dbh.session.execute('DROP TABLE profile_part;')
         Dbh.createTables()
         StaticDino.updateDinos(limit=10)
         
-        StaticPart.updateParts(StaticDino.getAll())
-        Resources.updateResources(JP.getAll())
+        #StaticPart.updateParts(StaticDino.getAll())
+        #Resources.updateResources(JP.getAll())
         
             
         
         
         
-        print(f"{len(JP.getAll())} Profiles IN TOTAL")
-        print(f"{len(Resources.getAll())} Resources IN TOTAL")
+        #print(f"{len(JP.getAll())} Profiles IN TOTAL")
+        #print(f"{len(Resources.getAll())} Resources IN TOTAL")
         print(f"{len(StaticDino.getAll())} Dinos IN TOTAL")
-        print(f"{len(StaticPart.getAll())} PARTS IN TOTAL")
+        #print(f"{len(StaticPart.getAll())} PARTS IN TOTAL")
        
 
             
@@ -636,6 +640,7 @@ class JurrasicPark(commands.Cog):
                 Dbh.session.add(o)
                 Dbh.session.commit()
         self.bot.loop.create_task(self.loop())
+        
     @commands.Cog.listener()
     async def on_voice_state_update(self,member,before,after):
         v = veh(member,before,after,self)

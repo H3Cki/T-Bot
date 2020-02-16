@@ -1,22 +1,23 @@
 from sqlalchemy import Column, ForeignKey, Integer, BigInteger, Boolean, String
 from ...utils.dbconnector import DatabaseHandler as Dbh
-from ..tiers import Tier
-from ..jurassicprofile import JurassicProfile as JP
+#from ..jurassicprofile import JurassicProfile as JP
 
-class Droppable:
-    def drop(self, profile):
-        profile_me = ProfileEntity(profile,self)
-        Dbh.session.add(profile_me)
-    
+
 
 class ProfileEntity(Dbh.Base):
+    TYPE = "profile_entity"
+    ENTITY_TYPE = "entity"
     # MAPPER ATTRIBUTES -------------------- #
     
-    __tablename__ = "profile_entity"
+    __tablename__ = TYPE
     
     id = Column(Integer, primary_key=True)
     profile_id = Column(Integer, ForeignKey('jurassicprofile.id'))
-    entity_id = Column(Integer, ForeignKey('entity.id'))
+    entity_id = Column(Integer, ForeignKey(f'{ENTITY_TYPE}.id'))
+
+    __mapper_args__ = {
+        'polymorphic_identity' : TYPE
+    }
 
     # OBJECT METHODS AND PROPERTIES -------- #
     
@@ -53,14 +54,13 @@ class Entity(Dbh.Base):
     TYPE   = "entity"
     NAME   = "Basic Entity"
     EMOJI  = '📦'
-    TIERED = True
+    TIERED = False
     EXTRAS = []
     
     # MAPPER ATTRIBUTES -------------------- #
     
     __tablename__ = "entity"
     id = Column(Integer, primary_key=True)
-    tier_idx = Column(Integer)
     type = Column(String)
     
     __mapper_args__ = {
@@ -70,11 +70,28 @@ class Entity(Dbh.Base):
     
     # OBJECT METHODS AND PROPERTIES -------- #
     
-    def __init__(self,tier_idx=None):
-        self.tier_idx = tier_idx
+    def __init__(self):
         self.type = self.__class__.TYPE
         for extra in self.__class__.EXTRAS:
             extra()
+    
+    @property
+    def name(self):
+        return self.__class__.NAME
+            
+    @property
+    def emoji(self):
+        if self.__class__.TIERED: 
+            if isinstance(self.__class__.EMOJI,list):
+                return self.__class__.EMOJI[self.tier_idx]
+        return self.__class__.EMOJI
+        
+    @property
+    def dropText(self):
+        text = f"{self.emoji} **{self.name}**"
+        if self.__class__.TIERED:
+            text += f" Tier {self.tier_idx+1}"
+        return text
     
     def requirements(self):
         pass
@@ -92,24 +109,6 @@ class Entity(Dbh.Base):
         
     
     
-    @property
-    def name(self):
-        return self.__class__.NAME
-            
-    @property
-    def emoji(self):
-        if self.__class__.TIERED:  
-            return self.__class__.EMOJI[self.tier_idx]
-        else:
-            return self.__class__.EMOJI
-        
-    @property
-    def dropText(self):
-        text = f"{self.emoji} **{self.name}**"
-        if self.__class__.TIERED:
-            text += f" Tier {self.tier_idx+1}"
-        return text
-    
     # CLASS METHODS ------------------------ #
 
     @classmethod
@@ -123,7 +122,8 @@ class Entity(Dbh.Base):
     @classmethod
     def getRandom(cls):
         if cls.TIERED:
-            tier = Tier.getRandomTier()
+            pass
+            #tier = Tier.getRandomTier()
         else:
             tier = None
         

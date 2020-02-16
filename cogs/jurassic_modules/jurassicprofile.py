@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInteger, String, TIMESTAMP, Boolean
 from ..utils.dbconnector import DatabaseHandler as Dbh
 from .discovery import Discovery
-from .part_info import StaticPart,ProfilePart, PartTypes
-from .dino import Dino
+# from .part_info import StaticPart,ProfilePart, PartTypes
+# from .dino import Dino
 from .dino_info import StaticDino
 from .resources import Resources
 from ..botinstance import bot

@@ -9,7 +9,7 @@ class DatabaseHandler:
     session = None
 
     @classmethod
-    def init(cls,url="sqlite:///db1.db"):
+    def init(cls,url="sqlite:///data/db.db"):
         cls.engine = create_engine(url,echo=False)
         cls.newSession()
 
@@ -38,4 +38,5 @@ class DatabaseHandler:
     @classmethod
     def getTables(cls):
         print(cls.Base.metadata.tables.keys())
-        
+
+DatabaseHandler.getTables()
