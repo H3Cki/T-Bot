@@ -1,6 +1,8 @@
-from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInteger, String, TIMESTAMP, Boolean, insert
+from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInteger, String, TIMESTAMP, Boolean, insert, PrimaryKeyConstraint
 from ..utils.dbconnector import DatabaseHandler as Dbh
+from .entities.entity import Entity, ProfileEntity
 import random
+
 
 class PartTypes:
     HEAD = "head"
@@ -24,54 +26,108 @@ class PartTypes:
         BONE+"void" : '<:bones_void:673959534661992494> '
     }
 
+class ProfilePart(ProfileEntity):
+    TYPE = "profile_part"
+    ENTITY_TYPE = "part"
+    # MAPPER ATTRIBUTES -------------------- #
+    
+    __tablename__ = TYPE
+    parent = Column(Integer, ForeignKey(ProfileEntity.entity_id))
+    
+    id = Column(Integer, primary_key=True)
 
-class StaticPart(Dbh.Base):
-    __tablename__ = "static_part"
+    __mapper_args__ = {
+        'polymorphic_identity' : TYPE
+    }
+
+
+class StaticPart(Entity):
+    # CLASS ATTRIBUTES --------------------- #
+    
+    TYPE   = "part"
+    NAME   = "Dino Part"
+    EMOJI  = '🦖'
+    TIERED = False
+    driver = None
+    
+    # MAPPER ATTRIBUTES -------------------- #
+    
+    __tablename__ = TYPE
+    
+    
+    parent = Column(Integer, ForeignKey(Entity.entity_id))
 
     id = Column(Integer, primary_key=True)
-    dino_name = Column(String, ForeignKey('static_dino.name'))
+    dino_name = Column(String, ForeignKey('dino.name'))
     type_idx = Column(Integer)
+    
+    __mapper_args__ = {
+        'polymorphic_identity' : TYPE
+    }
+    
 
+    def __init__(self,dino_name,type_idx):
+        self.dino_name = dino_name
+        self.type_idx = type_idx
+
+    @property
+    def name(self):
+        return f"**{self.dino_name.capitalize()}** {self.type}"
+
+    @property
+    def briefText(self):
+        text = f"{self.emoji} {self.name}"
+        return text
+
+    @property
+    def type(self):
+        return PartTypes.types[self.type_idx]
+
+    @property
+    def emoji(self):
+        return PartTypes.emojis[self.type]
 
     @classmethod
-    def getAll(cls):
-        res = Dbh.session.query(cls).all()
-        return res
-
-    @classmethod
-    def getPart(cls,dino_name,typ=None):
+    def getEntity(cls,dino_name,typ=None):
         return Dbh.session.query(cls).filter(cls.dino_name == dino_name, cls.type_idx == typ).first()
+    
+        
+    @classmethod
+    def getEmoji(self,addon=''):
+        return PartTypes.emojis[self.type+addon]
     
     @classmethod
     def updateParts(cls, dinolist):
         for dino in dinolist:
             for t in range(0,len(PartTypes.types)):
-                part = cls.getPart(dino.name,t)
+                part = cls.getEntity(dino.name,t)
                 if not part:
                     p = cls(dino.name,t)
                     Dbh.session.add(p)
-                    Dbh.session.commit()
+                    print(f"CREATING {p.name}")
+
+        Dbh.session.commit()
 
 
-    @classmethod
-    def drop(cls,dino,profile):
-        static_parts = dino.getPartsRequired()
+    # @classmethod
+    # def drop(cls,dino,profile):
+    #     static_parts = dino.getEntitysRequired()
         
-        if random.randint(0,100) <= 60:
-            unowned = []
-            for sp in static_parts:
-                if not profile.getPart(sp):
-                    unowned.append(sp)
-        else:
-            unowned = static_parts
+    #     if random.randint(0,100) <= 60:
+    #         unowned = []
+    #         for sp in static_parts:
+    #             if not profile.getEntity(sp):
+    #                 unowned.append(sp)
+    #     else:
+    #         unowned = static_parts
             
-        if len(unowned) == 0:
-            unowned = static_parts
+    #     if len(unowned) == 0:
+    #         unowned = static_parts
 
-        ptd = random.choice(unowned)
-        po = ProfilePart(ptd,profile)
+    #     ptd = random.choice(unowned)
+    #     po = ProfilePart(ptd,profile)
 
-        return po,ptd
+    #     return po,ptd
 
     @classmethod
     def removeDinoPartComplelty(cls,dino):
@@ -85,28 +141,8 @@ class StaticPart(Dbh.Base):
                 print(f"DELETED {part.dino_name} {part.type}")
                 Dbh.session.commit()
 
-    def __init__(self,dino_name,type_idx):
-        self.dino_name = dino_name
-        self.type_idx = type_idx
 
-    @property
-    def name(self):
-        return f"**{self.dino_name.capitalize()}** {self.type}"
+    
 
-    @property
-    def dropText(self):
-        return f"{self.getEmoji()} {self.name}"
 
-    @property
-    def type(self):
-        return PartTypes.types[self.type_idx]
-
-    def give(self,profile):
-        p =ProfilePart(self,profile)
-        Dbh.session.add(p)
-
-    def getEmoji(self,extra=""):
-        return PartTypes.emojis[self.type+extra]
-
-    def getCount(self, profile):
-        return Dbh.session.query(ProfilePart).filter(ProfilePart.profile_id == profile.id, ProfilePart.part_id == self.id).count()
+    

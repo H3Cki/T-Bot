@@ -3,25 +3,28 @@ import discord
 import asyncio
 import logging
 import random
+import time
 from datetime import datetime, timedelta
 
 from sqlalchemy.ext.declarative import declarative_base
 from .utils.dbconnector import DatabaseHandler as Dbh
+from sqlalchemy.inspection import inspect
 
 # from .jurassic_modules.dino import Dino
 
 
 
 # from .jurassic_modules.jmap import JMap
-# from .jurassic_modules.resources import *
+
 # from .jurassic_modules.embeds import *
 # from .jurassic_modules.event_handler import voiceStateUpdateHandler as veh
 
 from .jurassic_modules.guild_settings import JGuildSettings
 from .jurassic_modules.discovery import Discovery
 from .jurassic_modules.jurassicprofile import JurassicProfile as JP
-from .jurassic_modules.dino_info import StaticDino, DinoStatEmojis as DSE
-
+from .jurassic_modules.dino_info import StaticDino, ProfileDino, DinoStatEmojis as DSE
+from .jurassic_modules.part_info import StaticPart, ProfilePart
+from .jurassic_modules.resources import *
 
 
 class JurrasicPark(commands.Cog):
@@ -61,9 +64,8 @@ class JurrasicPark(commands.Cog):
             return
         
         t = f"""guild_id : {gs.guild_id}
-        notif_channel: {gs.j_notif_channel}
-        voice_cat: {gs.j_voice_cat}
-        notify: {gs.notify}
+        notif_channel: {gs.notif_channel}
+        voice_cat: {gs.voice_cat}
         active: {gs.active}"""
         await ctx.send(t)
 
@@ -96,7 +98,7 @@ class JurrasicPark(commands.Cog):
             await ctx.send("No setting for this server")
             return
         
-        gs.j_notif_channel = ctx.message.channel.id
+        gs.notif_channel = ctx.message.channel.id
         Dbh.session.commit()
 
 
@@ -108,7 +110,7 @@ class JurrasicPark(commands.Cog):
             await ctx.send("No setting for this server")
             return
         
-        gs.j_voice_cat = int(cat_id)
+        gs.voice_cat = int(cat_id)
         Dbh.session.commit()
 
 
@@ -140,6 +142,18 @@ class JurrasicPark(commands.Cog):
     # MODERATION AND TESTING ---------------------------
     #
     #
+    
+    @commands.command(name='startjurassic',hidden=True)
+    @commands.has_guild_permissions(manage_guild=True)
+    async def startjurassic(self,ctx,text_channel_name=None):
+        guild = ctx.message.guild
+        gs = JGuildSettings.get(guild.id)
+        if gs.voice_cat:
+            for channel in guild.channels:
+                if channel.category:
+                    if channel.category.id == gs.voice_cat.id:
+                        await channel.delete()
+        
     
     @commands.command(name='swaptiers',hidden=True)
     @commands.has_guild_permissions(manage_guild=True)
@@ -207,9 +221,9 @@ class JurrasicPark(commands.Cog):
         cv = ''
         kv = ''
         for i,chest in enumerate(chests):
-            cv += f'\n`{i+1}` {chest.dropText}'
+            cv += f'\n`{i+1}` {chest.briefText}'
         for i,key in enumerate(keys):
-            kv += f'\n`{i+1}` {key.dropText}'
+            kv += f'\n`{i+1}` {key.briefText}'
         
         embed = discord.Embed(title=f"{ctx.message.author.display_name} - {len(chests)} CHESTS")
         embed.set_thumbnail(url='https://i.pinimg.com/236x/d2/ca/d6/d2cad6a7be1e22593fa8c9f61da32b22--game-props-d-models.jpg')
@@ -331,7 +345,7 @@ class JurrasicPark(commands.Cog):
         for vc in guild.voice_channels:
             if not vc.category:
                 continue
-            if vc.category.id != gs.j_voice_cat:
+            if vc.category.id != gs.voice_cat:
                 continue
             dn = StaticDino.parseName(vc.name)
             try:
@@ -420,19 +434,46 @@ class JurrasicPark(commands.Cog):
             embed.add_field(name=f"🦖 **{disc.dino_name.upper()}**"+t, value=f"{info} *Discovered by {member.display_name}*")
         await ctx.send(embed=embed)
         
-    @commands.command(name='dinoinfo')
-    async def dino_info(self,ctx, dino_name):
+    @commands.command(name='dino')
+    async def dino_info(self,ctx, dino_name=None):
         """
         Shows profile of a dino by its name
         """
-        dino = StaticDino.getDino(dino_name.lower())
+        if dino_name:
+            dino = StaticDino.getDino(dino_name.lower())
+        else:
+            dino = random.choice(StaticDino.getSetDinos())
         if not dino:
             await ctx.send(embed=discord.Embed(description=f'No information about {dino.name.capitalize()}.'))
-        if dino.isDiscovered(ctx.message.guild.id):# or ctx.message.author.id == 139839031402823680:
+        if dino.isDiscovered(ctx.message.guild.id) or ctx.message.author.id == 139839031402823680:
             await ctx.send(embed=dino.getEmbed())
         else:
             await ctx.send(embed=discord.Embed(description=f'{dino.name.capitalize()} has not been discovered yet.'))
+    
+    @commands.command(name='dinoimage')
+    async def dino_image(self,ctx, dino_name=None):
+        """
+        Shows profile of a dino by its name and lists all images of it
+        """
+        if dino_name:
+            dino = StaticDino.getDino(dino_name.lower())
+        else:
+            dino = random.choice(StaticDino.getAll())
+        if not dino:
+            await ctx.send(embed=discord.Embed(description=f'No information about {dino.name.capitalize()}.'))
+        
+        e = dino.getEmbed()
             
+        if dino.isDiscovered(ctx.message.guild.id):
+            pass
+        else:
+            e.description = "Not been discovered yet."
+
+        t = f'`Type the number of an image to set it as the main one. Discord previews only first 5 images.`\n'
+        for i,iu in enumerate(dino.other_image_urls_list):
+            t += f'`{i+1}` {iu}\n'
+        await ctx.send(t)
+        
     @commands.command(name='deletedino')
     async def delete_info(self,ctx, dino_name):
         """
@@ -443,8 +484,49 @@ class JurrasicPark(commands.Cog):
         Dbh.session.commit()
         await ctx.send("deleted")
 
-
+    @commands.command(name='alldinos')
+    async def alldinos(self,ctx):
+        """
+        Shows profile of a dino by its name
+        """
+        t = '\n'.join([dino.briefText for dino in StaticDino.getAll()])
+        await ctx.send(t)
     
+    @commands.command(name='allparts')
+    async def allparts(self,ctx):
+        """
+        Shows profile of a dino by its name
+        """
+        t = '\n'.join([dino.briefText for dino in StaticPart.getAll()])
+        await ctx.send(t)
+        
+    @commands.command(name='gibdino')
+    async def gibdino(self,ctx):
+        """
+        Shows profile of a dino by its name
+        """
+        profile = JP.getProfile(ctx.message.author)
+        dino = random.choice(StaticDino.getAll())
+        owned_dino = ProfileDino(profile,dino)
+        Dbh.session.add(owned_dino)
+        pds = ProfileDino.getAllProfileEntities(profile)
+        for pd in pds:
+            await ctx.send(pd.entity.briefText)
+            
+            
+    @commands.command(name='gibpart')
+    async def gibpart(self,ctx):
+        """
+        Shows profile of a Part by its name
+        """
+        profile = JP.getProfile(ctx.message.author)
+        Part = random.choice(StaticPart.getAll())
+        owned_Part = ProfilePart(profile,Part)
+        Dbh.session.add(owned_Part)
+        pds = ProfilePart.getAllProfileEntities(profile)
+        for pd in pds:
+            await ctx.send(pd.entity.briefText)
+        
     @commands.command(name='ratedinos')
     async def ratedinos(self,ctx,review=''):
         
@@ -468,21 +550,19 @@ class JurrasicPark(commands.Cog):
             embed = dino.getEmbed()
             n_set = len(StaticDino.getSetDinos())
             inf = f"{n_set}/{n_total} dinos set."
-            embed.set_footer(text=f"[{inf}]\n❗❗❗ Tiery: 1,2,3,4,5 (1 - best, 5 - worst)\nŻeby wyznaczyć tiery statystyk wpisz: 1231 (cyfry oznaczaja kolejne katerogie tierów)\nOpcjonalnie można dopisać piątą wartość, która będzie odpowiadała Overall Tier, wtedy będzie on ustawiony na sztywno zamiast być liczonym ze średniej tierów.\bset - zatwierdza obecne (losowe) statystyki\nskip - kolejny dino\ndel - usuwa dinozaura z listy jeśli ma chujowe zdjecie, albo ogolnie jest meh\nstop - koniec przegladania")
-            try:
-                msg = await ctx.send(embed=embed)
-            except:
-                Dbh.session.delete(dino)
-                continue
+            embed.set_footer(text=embed.footer.text+f"\n[{inf}]\n❗❗❗img - pokazuje dostępne obrazki zamienne\nset - zatwierdza obecne (losowe) statystyki\nskip - kolejny dino\ndel - usuwa dinozaura z listy jeśli ma chujowe zdjecie, albo ogolnie jest meh\nstop - koniec przegladania")
+
+            msg = await ctx.send(embed=embed)
 
             def check(m):
                 return m.channel == ctx.message.channel and m.author.id == ctx.message.author.id
-
             try:
                 resp = await self.bot.wait_for('message', check=check, timeout=160.0)
             except:
                 await ctx.send(f"{ctx.message.author.name} TIMEOUT")
                 return
+            
+            
             resp = resp.content
             if resp == 'set':
                 dino.is_random = False
@@ -494,7 +574,6 @@ class JurrasicPark(commands.Cog):
                 break
             
             if resp == 'del':
-                #await my_channel.send(f"{ctx.message.author.name} usunal {dino.name}: {dino.getValidUrl()}")
                 StaticDino.removeFromFile([dino,])
                 e = discord.Embed(description=f"{dino.name.capitalize()} został usunięty.")
                 e.colour = discord.Colour.from_rgb(255,0,0)
@@ -540,24 +619,28 @@ class JurrasicPark(commands.Cog):
         
     async def shuffle_channels(self,bot,g,gs):
         #dinos = StaticDino.getSetDinos(is_random=False)
+        dinos = StaticDino.getAll()
         time = str((datetime.now()+timedelta(hours=1)).time())[:5]
         category = None
         self.visitors[g.id] = {}
         for vc in g.voice_channels:
             if not vc.category:
                 continue
-            if vc.category.id == gs.j_voice_cat:
-                dino = StaticDino.getRandomSetDinoTierWise()
+            
+            if vc.category.id == gs.voice_cat:
+                dino = StaticDino.getRandomDinoTierWise(dinos)
                 category = vc.category
                 
                 if dino.isDiscovered(g.id):
-                    emoji = DSE.emojis['dino1']
+                    emoji = StaticDino.emoji
                     tier = f" ᴛ{dino.tier+1}"
                 else:
                     emoji = '❓'
                     tier = ''
                 await vc.edit(name=f"{emoji} {dino.name.capitalize()}"+tier)
-        await category.edit(name=f"Jurassic Park @{time}")
+
+        if category:
+            await category.edit(name=f"Jurassic Park @{time}")
         
         
     @commands.command(name='shuffle')
@@ -582,11 +665,7 @@ class JurrasicPark(commands.Cog):
             
                 if time.time() - self.last_shuffle > self.shuffle_interval:
                     gs = JGuildSettings.get(g.id)
-                    if not gs:
-                        o = JGuildSettings(guild.id)
-                        Dbh.session.add(o)
-                        Dbh.session.commit()
-                    if not gs.active or not gs.j_voice_cat:
+                    if not gs.voiceReady:
                         continue
                     await self.shuffle_channels(self,g,gs)
                     shuffled = True
@@ -595,10 +674,9 @@ class JurrasicPark(commands.Cog):
                 if time.time() - Resources.last_update > Resources.update_interval:
                     for profile in JP.getAll(g.id):
                         member = g.get_member(profile.member_id)
-                        if not member:
-                            continue
                         rewards = Rewards.getMemberReward(member)
                         profile.resources.addResources(rewards)
+                        
                     rewarded = True
 
             if shuffled:
@@ -610,23 +688,28 @@ class JurrasicPark(commands.Cog):
 
     def setupDB(self):
         Dbh.init()
-        Dbh.Base.metadata.clear()
+        print([key.name for key in inspect(StaticDino).primary_key])
         #Dbh.session.execute('DROP TABLE static_part;')
         #Dbh.session.execute('DROP TABLE profile_part;')
+        #Dbh.session.execute("DROP TABLE part;")
         Dbh.createTables()
         StaticDino.updateDinos(limit=10)
         
-        #StaticPart.updateParts(StaticDino.getAll())
-        #Resources.updateResources(JP.getAll())
+        StaticPart.updateParts(StaticDino.getAll())
+        dino = random.choice(StaticDino.getAll())
+        dino.entity_id
+        
+        Resources.updateResources(JP.getAll())
+        
         
             
         
         
         
-        #print(f"{len(JP.getAll())} Profiles IN TOTAL")
-        #print(f"{len(Resources.getAll())} Resources IN TOTAL")
+        print(f"{len(JP.getAll())} Profiles IN TOTAL")
+        print(f"{len(Resources.getAll())} Resources IN TOTAL")
         print(f"{len(StaticDino.getAll())} Dinos IN TOTAL")
-        #print(f"{len(StaticPart.getAll())} PARTS IN TOTAL")
+        print(f"{len(StaticPart.getAll())} PARTS IN TOTAL")
        
 
             

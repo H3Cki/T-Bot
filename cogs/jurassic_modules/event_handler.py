@@ -1,3 +1,8 @@
+import discord
+from datetime import datetime, timedelta
+import random
+
+
 from .jurassicprofile import JurassicProfile as JP
 from .dino_info import StaticDino
 from .discovery import Discovery
@@ -6,9 +11,6 @@ from .resources import Rewards
 from ..utils.dbconnector import DatabaseHandler as Dbh
 from .guild_settings import JGuildSettings
 from .embeds import *
-import discord
-from datetime import datetime, timedelta
-import random
 
 class voiceStateUpdateHandler:
     def __init__(self,member,before,after,jcog):
