@@ -12,6 +12,7 @@ class Lab:
     CONTROLS = {
         'prev' : u'◀',
         'next' : u'▶',
+        'reload': u'🔃',
         'stop' : u'⏹'
     }
     
@@ -49,6 +50,7 @@ class Lab:
             return
         await msg.add_reaction(Lab.CONTROLS['prev'])
         await msg.add_reaction(Lab.CONTROLS['next'])
+        await msg.add_reaction(Lab.CONTROLS['reload'])
         await msg.add_reaction(Lab.CONTROLS['stop'])
         
         def check(reaction, user):
@@ -60,7 +62,10 @@ class Lab:
             except:
                 break
             if reaction.emoji == Lab.CONTROLS['stop']:
-                break
+                await msg.delete()
+                return
+            if reaction.emoji == Lab.CONTROLS['reload']:
+                pass
             
             starting_page_idx = self.page_idx
             
@@ -69,7 +74,7 @@ class Lab:
             if reaction.emoji == Lab.CONTROLS['prev']:
                 self.page_idx = self.page_idx - 1 if self.page_idx > 0 else self.page_idx
             
-            if self.page_idx != starting_page_idx:
+            if self.page_idx != starting_page_idx or reaction.emoji == Lab.CONTROLS['reload']:
                 embed = self.getEmbed(self.getList())
                 await msg.edit(embed=embed)
                 await msg.remove_reaction(reaction.emoji,ctx.message.author)

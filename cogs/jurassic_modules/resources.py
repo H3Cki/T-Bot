@@ -160,22 +160,22 @@ class ResourcesBase(Copy):
         return self
         
     def __add__(self, res):
-        shit = self.shit + res.shit
-        wood = self.wood + res.wood
-        gold = self.gold + res.gold
-        return ResourcesBase(cost=[shit,wood,gold])
+        self.shit += res.shit
+        self.wood += res.wood
+        self.gold += res.gold
+        return self
         
     def __sub__(self, res):
-        shit = self.shit - res.shit
-        wood = self.wood - res.wood
-        gold = self.gold - res.gold
-        return ResourcesBase(cost=[shit,wood,gold])
+        self.shit -= res.shit
+        self.wood -= res.wood
+        self.gold -= res.gold
+        return self
     
     def __mul__(self, multiplier):
-        shit = int(self.shit * multiplier)
-        wood = int(self.wood * multiplier)
-        gold = int(self.gold * multiplier)
-        return ResourcesBase(cost=[shit,wood,gold])
+        self.shit = int(self.shit * multiplier)
+        self.wood = int(self.wood * multiplier)
+        self.gold = int(self.gold * multiplier)
+        return self
 
     def __gt__(self, comp_res):
         for res, cres in zip(self.resources,comp_res.resources):

@@ -213,8 +213,8 @@ class JurrasicPark(commands.Cog):
 
     @commands.command()
     async def attack(self,ctx,target:discord.Member=None):    
-        if target is None or target == ctx.message.author:
-            await ctx.send(f'To use this command specify who you want to attack by mentioning them. For example `!attack @T-Bot#0438`')
+        if target is None or target == ctx.message.author or target.bot:
+            await ctx.send(f'To use this command specify who you want to attack by mentioning them. For example `!attack @{random.choice([str(member) for member in ctx.message.guild.members if not member.bot and not member == ctx.message.author])}`')
             return
         
         member = ctx.message.author
@@ -320,7 +320,8 @@ class JurrasicPark(commands.Cog):
             print(f"{result} = {c}.get(name={item_name})")
             if result:
                 result = result[0]
-                results.append(result)
+                for _ in range(count):
+                    results.append(result)
         print(results)
     
         await Buildable.buildEvent(profile,results,lab=Lab(profile))
@@ -729,9 +730,9 @@ class JurrasicPark(commands.Cog):
                 o = JGuildSettings(guild.id)
                 Dbh.session.add(o)
                 Dbh.session.commit()
-            # for member in guild.members:
-            #     if member.bot:
-            #         continue
+            for member in guild.members:
+                if member.bot:
+                    JP.get(member)
                 
         self.bot.loop.create_task(self.loop())
         self.bot.loop.create_task(self.simpleChannelDropLoop())

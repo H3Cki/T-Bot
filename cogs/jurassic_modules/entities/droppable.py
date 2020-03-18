@@ -61,7 +61,7 @@ class Droppable: #Doesnt work when not inherited by class that inherits from Ent
     @classmethod
     def baseEmbed(cls,member):
         e = discord.Embed(title=f"Drop for {member.display_name}",description='')
-        footer = str((datetime.now()+timedelta(hours=1)).time())[:5]
+        footer = str((datetime.now()+timedelta(hours=1)).time())[:5] + " Check !lab."
         e.set_footer(text=footer)
         return e
         

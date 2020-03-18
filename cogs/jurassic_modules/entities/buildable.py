@@ -71,15 +71,13 @@ class Buildable:
         
         owned_items = br.requirementsMet(profile)
         
-        if owned_items:
+        if owned_items and profile.resources > bc:
             for owned_item, req_item in zip(owned_items,br.req):
                 owned_item.count -= req_item.count
-                
-            if profile.resources > bc:
-                resources = profile.resources
-                resources -= bc
-            else:
-                raise Exception(f"Not enough resources")
+            resources = profile.resources
+            resources -= bc
+        else:
+            raise Exception(f"Not enough resources or parts")
             
 
     @staticmethod
@@ -92,11 +90,11 @@ class Buildable:
         for item in items:
             try:
                 item._build(profile,lab)
+                successfully_built.append(item)
             except Exception as e:
                 unsucces_built.append(item)
                 continue
                 
-            successfully_built.append(item)
         if successfully_built:
             drop = await Droppable.dropEvent(member,profile,items=successfully_built)
             
@@ -112,4 +110,9 @@ class Buildable:
 
     @staticmethod
     def unsuccessfulEmbed(items):
-        return discord.Embed(title="Some items can't be built",description="\n".join([item.briefText for item in items]),color=discord.Color.from_rgb(255,0,0))
+        texts = []
+        for item in set(items):
+            count = items.count(item)
+            count_t = f"x{count}" if count > 1 else ""
+            texts.append(f'{item.briefText} {count_t}')
+        return discord.Embed(title="Some items can't be built",description="\n".join(texts),color=discord.Color.from_rgb(255,0,0))
