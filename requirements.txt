@@ -1,0 +1,10 @@
+asyncio
+bs4
+discord.py
+Pillow
+requests
+selenium
+SQLAlchemy
+SQLAlchemy-Utils
+
+
