@@ -25,6 +25,15 @@ class JGuildSettings(Dbh.Base):
         return self.guild.get_channel(self.notif_channel)
     
     @property
+    def category(self):
+        c = None
+        for cat in self.guild.categories:
+            if cat.id == self.voice_cat:
+                c = cat
+                break
+        return c
+    
+    @property
     def voiceReady(self):
         return self.active and self.voice_cat
     

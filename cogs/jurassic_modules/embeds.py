@@ -1,3 +1,4 @@
+import discord
 from discord import Embed
 from datetime import datetime, timedelta
 
@@ -36,3 +37,6 @@ def noStorageEmbed(member):
 
 def destructionEmbed(member):
     return Embed(description=f"❗ {member.mention} Your lab has exploded 💥 due to overload, you lost everything.")
+
+def greenEmbed(descr):
+    return Embed(description=descr,colour=discord.Colour.from_rgb(25,255,0))

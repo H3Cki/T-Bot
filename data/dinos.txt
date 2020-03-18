@@ -1,4 +1,3 @@
-aachenosaurus
 aardonyx
 abelisaurus
 abrictosaurus
@@ -6,19 +5,15 @@ abrosaurus
 abydosaurus
 acanthopholis
 achelousaurus
-acheroraptor
-achillesaurus
 achillobator
 acristavus
 acrotholus
-adamantisaurus
 adasaurus
 adynomosaurus
 aegyptosaurus
 aeolosaurus
 aepisaurus
 aerodactylus
-aerosteon
 aerotitan
 aetodactylus
 aetonyx
@@ -27,12 +22,8 @@ agathaumas
 agilisaurus
 agnosphitys
 agrosaurus
-agujaceratops
 agustinia
-ahshislepelta
 airakoraptor
-ajancingenia
-ajkaceratops
 akainacephalus
 alamosaurus
 alanqa
@@ -69,7 +60,6 @@ amygdalodon
 anabisetia
 anasazisaurus
 anatotitan
-anchiceratops
 anchiornis
 anchisaurus
 andesaurus
@@ -116,7 +106,6 @@ arkharavia
 arstanosaurus
 arthurdactylus
 asiaceratops
-asiatosaurus
 astrodon
 astrophocaudia
 asylosaurus
@@ -170,13 +159,11 @@ berberosaurus
 betasuchus
 bicentenaria
 bienosaurus
-bihariosaurus
 bissektipelta
 bistahieversor
 blasisaurus
 blikanasaurus
 bobosaurus
-bolong
 bonapartenykus
 bonatitan
 bonitasaura
@@ -198,7 +185,6 @@ buitreraptor
 burianosaurus
 byronosaurus
 cacibupteryx
-caenagnathasia
 caiuajara
 calamosaurus
 callovosaurus
@@ -227,7 +213,6 @@ ceratonykus
 ceratops
 ceratosaurus
 cetiosauriscus
-cetiosaurus
 changdusaurus
 changyuraptor
 chaoyangsaurus
@@ -243,7 +228,6 @@ chromogisaurus
 chuanjiesaurus
 chuanqilong
 chubutisaurus
-cionodon
 citipati
 claorhynchus
 claosaurus
@@ -285,7 +269,6 @@ daanosaurus
 dacentrurus
 dachongosaurus
 daemonosaurus
-dahalokely
 dakotadon
 dakotaraptor
 damalasaurus
@@ -365,7 +348,6 @@ emausaurus
 enigmosaurus
 eoabelisaurus
 eoazhdarcho
-eobrontosaurus
 eocarcharia
 eocursor
 eodromaeus
@@ -373,9 +355,7 @@ eolambia
 eoplesiosaurus
 eopteranodon
 eoraptor
-eosinopteryx
 eosipterus
-eotrachodon
 eotriceratops
 eotyrannus
 eousdryosaurus
@@ -388,7 +368,6 @@ eretmosaurus
 erketu
 erliansaurus
 erlikosaurus
-eromangasaurus
 eshanosaurus
 eucamerotus
 eucercosaurus
@@ -401,7 +380,6 @@ eurazhdarcho
 euronychodon
 europasaurus
 europatitan
-europejara
 europelta
 eurycleidus
 euskelosaurus
@@ -420,7 +398,6 @@ fukuititan
 fukuivenator
 fulengia
 fulgurotherium
-fusuisaurus
 futabasaurus
 gadolosaurus
 galeamopus
@@ -429,14 +406,12 @@ galleonosaurus
 gallimimus
 gallodactylus
 galvesaurus
-gannansaurus
 ganzhousaurus
 garudimimus
 gasosaurus
 gasparinisaura
 gastonia
 gegepterus
-geminiraptor
 genusaurus
 genyodectes
 georgiasaurus
@@ -465,7 +440,6 @@ gravitholus
 gronausaurus
 gryphoceratops
 gryposaurus
-guaibasaurus
 gualicho
 guanlong
 guidraco
@@ -529,17 +503,14 @@ incisivosaurus
 indosaurus
 indosuchus
 ingridia
-inosaurus
 irritator
 isaberrysaura
 isanosaurus
 ischyrosaurus
 isisaurus
-istiodactylus
 itemirus
 iuticosaurus
-jainosaurus
-janenschia
+jajanenschia
 jaxartosaurus
 jeholopterus
 jeholosaurus
@@ -598,7 +569,6 @@ laevisuchus
 lamaceratops
 lambeosaurus
 lametasaurus
-lamplughsaura
 lanasaurus
 lanzhousaurus
 laosaurus
@@ -632,8 +602,7 @@ linhenykus
 linheraptor
 linhevenator
 liopleurodon
-lirainosaurus
-liubangosaurus
+liraliubangosaurus
 lonchodectes
 loncosaurus
 lophorhothon
@@ -711,8 +680,7 @@ monoclonius
 mononykus
 morelladon
 morenosaurus
-morinosaurus
-moros
+mormoros
 morrosaurus
 morturneria
 mosaiceratops
@@ -812,7 +780,6 @@ parksosaurus
 paronychodon
 parvicursor
 patagonykus
-patagosaurus
 pawpawsaurus
 pectinodon
 pedopenna
@@ -823,8 +790,7 @@ peloneustes
 peloroplites
 pelorosaurus
 pentaceratops
-peteinosaurus
-petrobrasaurus
+petepetrobrasaurus
 philovenator
 phobetor
 phosphatodraco
@@ -839,7 +805,6 @@ plateosauravus
 plateosaurus
 platyceratops
 plesiohadros
-plesiopterys
 plesiosaurus
 pleurocoelus
 pliosaurus
@@ -855,13 +820,11 @@ prejanopterus
 prenocephale
 prenoceratops
 preondactylus
-priconodon
 proa
 prodeinodon
 proplanicoxa
 prosaurolophus
 protoavis
-protoceratops
 protohadros
 psittacosaurus
 ptenodracon
@@ -962,14 +925,12 @@ siamotyrannus
 siats
 siluosaurus
 silvisaurus
-simolestes
 sinoceratops
 sinocoelurus
 sinopliosaurus
 sinopterus
 sinornithoides
-sinosaurus
-sinotyrannus
+ssinotyrannus
 sinovenator
 sinraptor
 sinusonasus
@@ -981,8 +942,7 @@ sordes
 soriatitan
 sphaerotholus
 spinops
-spinosaurus
-spinostropheus
+spspinostropheus
 spondylosoma
 staurikosaurus
 stegoceras
@@ -1045,7 +1005,6 @@ thecocoelurus
 thecospondylus
 theiophytalia
 thescelosaurus
-thespesius
 thililua
 tianchisaurus
 tianyulong
@@ -1112,8 +1071,7 @@ volgadraco
 volkheimeria
 vouivria
 vulcanodon
-wakinosaurus
-walgettosuchus
+wakwalgettosuchus
 wannanosaurus
 weewarrasaurus
 wellnhoferia
@@ -1139,8 +1097,7 @@ xuwulong
 yamaceratops
 yandusaurus
 yaverlandia
-yibinosaurus
-yimenosaurus
+yibyimenosaurus
 yinlong
 yixianopterus
 yixianosaurus
@@ -1165,7 +1122,6 @@ zhanghenglong
 zhongornis
 ziapelta
 zigongosaurus
-zizhongosaurus
 zuniceratops
 zuolong
 zupaysaurus

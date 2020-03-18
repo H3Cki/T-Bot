@@ -27,16 +27,18 @@ class DatabaseHandler:
         cls.session.commit()
 
     @classmethod
+    def delete(cls,item):
+        cls.session.delete(item)
+
+    @classmethod
     def closeSession(cls):
         cls.session.close()
 
     @classmethod
-    def addItem(cls, item):
+    def add(cls, item):
         cls.session.add(item)
         cls.session.commit()
 
     @classmethod
     def getTables(cls):
         print(cls.Base.metadata.tables.keys())
-
-DatabaseHandler.getTables()

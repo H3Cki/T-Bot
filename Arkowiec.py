@@ -5,14 +5,11 @@ from datetime import datetime
 import platform
 from cogs import botinstance as bi
 
-# Below cogs represents our folder our cogs are in. Following is the file name. So 'meme.py' in cogs, would be cogs.meme
-# Think of it like a dot path import
-#initial_extensions = ['cogs.fight','cogs.drops','cogs.games','cogs.general','cogs.cs,r6','cogs.diary','cogs.q','cogs.markov']
-initial_extensions = ['cogs.jurassicpark','cogs.slot']
+
+initial_extensions = ['cogs.jurassicpark']
 bot = commands.Bot(command_prefix="!", description=f'Nazywam się Arkowiec, jestem najlepszym botem na świecie.\n\nOS: {platform.system()}\nPlatform: {platform.platform()}\nVersion: {platform.version()}\nCPU: {platform.processor()}')
 bi.bot = bot
 
-# Here we load our extensions(cogs) listed above in [initial_extensions].
 if __name__ == '__main__':
     for extension in initial_extensions:
         try:
@@ -27,5 +24,6 @@ async def on_ready():
     print(f'\n\nLogged in as: {bot.user.name} - {bot.user.id}\nVersion: {discord.__version__}\n')
     print(f'[{datetime.now()}] Successfully logged in and booted...!')
 
-bot.run("NjYzMTk5MzQ1OTE0NTQ0MTM4.XjICDQ.uil5-upz-GmWnVSxS7zVqUym41Q",reconnect=True)
+bot.run("NjYzMTk5MzQ1OTE0NTQ0MTM4.Xl6HLg.O0RifshE1Nz53h3rz2aa1ZKlQBQ",reconnect=True)
+
 

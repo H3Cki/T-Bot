@@ -1,16 +1,17 @@
 import discord
 from datetime import datetime, timedelta
 import random
-
+import asyncio
 
 from .jurassicprofile import JurassicProfile as JP
-from .dino_info import StaticDino
+from .dino_info import StaticDino, DinoPart
 from .discovery import Discovery
-from .part_info import StaticPart
 from .resources import Rewards
 from ..utils.dbconnector import DatabaseHandler as Dbh
 from .guild_settings import JGuildSettings
 from .embeds import *
+from .entities.droppable import Droppable
+
 
 class voiceStateUpdateHandler:
     def __init__(self,member,before,after,jcog):
@@ -31,80 +32,59 @@ class voiceStateUpdateHandler:
             self.jcog.visitors[self.member.guild.id] = {}
         if self.member.id not in self.jcog.visitors[self.member.guild.id].keys():
             self.jcog.visitors[self.member.guild.id][self.member.id] = []
-            
+        
             
             
         if self.after.channel.id in self.jcog.visitors[self.member.guild.id][self.member.id]:
             return
         
-        self.jcog.visitors[self.member.guild.id][self.member.id].append(self.after.channel.id)
+        self.jcog.visitors[self.member.guild.id][self.member.id].append(self.after.channel.id) ###################################################
         
         static_dino = StaticDino.getDinoFromChannelName(self.after.channel.name)
         
         nostorage = False
         
         drops = []
-        
+        gs = JGuildSettings.get(self.member.guild.id)
+        if not gs.active or self.after.channel.category_id != gs.voice_cat:
+            return
+            
         if static_dino:
+            channel = self.after.channel
             
             
-            gs = JGuildSettings.get(self.member.guild.id)
-            if not gs.active:
+            #if self.before.channel:
+                #await self.member.move_to(self.before.channel)
+            
+            #await asyncio.sleep(3)
+            
+            try:
+                members = self.after.channel.members
+            except:
                 return
-            
-            profile = JP.getProfile(self.member)
-            if not profile:
-                profile = JP(self.member.id,self.member.guild.id)
-                Dbh.session.add(profile)
-
-
-
-            # #DROP CHEST
-            # if random.uniform(0,100) < 8:
-            #     chest = DinoChest(profile,StaticDino.getRandomSetDinoTierWise())
-            #     drops.append(chest)
-            #     Dbh.session.add(chest)
-            #     #await ctx.send(ctx.message.author.mention,embed=itemDropEmbed(target,chest))
-
-    
-    
-            dropped, static = StaticPart.drop(static_dino,profile)
-            if dropped:
-                dwp = profile.getDinosWithParts()
-              
-                if static_dino not in dwp and len(dwp) >= 10:
-                    nostorage = True
-                    
-                    above_perc = ((100*(len(dwp)-10))/10)/2
-                    if random.uniform(0.1,100) <= above_perc:
-                        await gs.send(embed=destructionEmbed(self.member))
-                        profile.eraseAllParts()
-                        Dbh.session.commit()
-                        return 
-                profile.addExp(1)
-                drops.append(static)
-                #await gs.send(embed=dropEmbed(self.member,static,nostorage))
-                Dbh.session.add(dropped)
-                     
+            #try:
+                #await self.after.channel.delete()
+            #for member in members:
+            member = self.member
+            l = DinoPart.get(as_list=True,dino_name=static_dino.name)
+            reward = [static_dino,] if random.uniform(0,1) < 0.1 else [random.choice(DinoPart.get(as_list=True,dino_name=static_dino.name)) for _ in range(random.randint(1,3))]
+            profile = JP.get(member)
+            drop = await Droppable.dropEvent(member,profile,items=reward)
             
             
-            await gs.send(embed=itemDropEmbed(self.member,drops,nostorage))         
-            dino = profile.buildDino(static_dino)
-            if dino:
-                if not static_dino.isDiscovered(self.member.guild.id):
-                    disc = Discovery(static_dino.name,profile.id,profile.guild_id)
-                    profile.addExp(5)
-                    Dbh.session.add(disc)
-                    reward = Rewards.rewards['discovery']
-                    profile.resources.addResources(reward)
-                    await gs.send(embed=discoveryEmbed(self.member,static_dino))
-
+            for d in drop:
+                if isinstance(drop,StaticDino):
+                    if not d.isDiscovered(member.guild.id):
+                        di = Discovery(d.name,profile.id,profile.guild_id)
+                        Dbh.session.add(di)
+                        await gs.send(content=f'New discovery by {member.display_name}!',embed=d.getEmbed())
+                            
+            Dbh.commit()
+            try:
+                await asyncio.sleep(5)
+                await channel.delete()
+            except:
+                pass
                 
-                e = dino.getEmbed()
-                e.set_thumbnail(url=static_dino.image_url)
-                try:
-                    await self.member.send(embed = e)
-                except:
-                    await gs.send(self.member.mention,embed = e)
-            
-        Dbh.commit()
+                
+        

@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInteger
 from ..utils.dbconnector import DatabaseHandler as Dbh
+from ..utils.copy import Copy
 import time
 import discord
 
@@ -7,9 +8,9 @@ class Rewards:
     rewards = {
         'online' : [1,0,0],
         'on_voice_chat' : [1,1,1],
-        'playing' : [0,0,1],
+        'playing' : [1,1,0],
         'company' : [1,1,0],
-        'discovery' : [0,0,25]
+        'discovery' : [80,40,20]
     }
     
     @classmethod
@@ -40,34 +41,33 @@ class Rewards:
 
     
 class ResourceEmojis:
-    
+    SHIT = 'shit'
+    WOOD = 'wood'
+    GOLD = 'gold'
+    names = [SHIT,WOOD,GOLD]
     emojis = {
-        'shit' : '<:shit1:674037327101952043>',
-        'wood' : '<:wood:674037327399485440>',
-        'gold' : '<:gold:674037327118729257>'
+        SHIT : '<:shit1:674037327101952043>',
+        WOOD : '<:wood:674037327399485440>',
+        GOLD : '<:gold:674037327118729257>',
+        SHIT+'void' : '<:shit_void:689095308499615764>',
+        WOOD+'void' : '<:wood_void:689095308231442437>',
+        GOLD+'void' : '<:gold_void:689094862045315109>'
     }
 
-
-class Resources(Dbh.Base):
-    update_interval = 300
-    last_update = 0
-    
-    __tablename__ = "resources"
-    
-    id = Column(Integer, primary_key=True)
-    profile_id = Column(Integer, ForeignKey('jurassicprofile.id'))
-    shit = Column(Integer)
-    wood = Column(Integer)
-    gold = Column(Integer)
-    
+class ResourcesBase(Copy):
     @classmethod
     def getAll(cls):
         return Dbh.session.query(cls).all()
     
-    
+
     @classmethod
     def getResources(cls,profile):
-        return Dbh.session.query(cls).filter(cls.profile_id == profile.id).first()
+        result = Dbh.session.query(cls).filter(cls.profile_id == profile.id).first()
+        if not result:
+            result = cls(profile)
+            Dbh.session.add(result)
+            Dbh.session.commit()
+        return result
 
     @classmethod
     def updateResources(cls,profiles):
@@ -78,15 +78,14 @@ class Resources(Dbh.Base):
                 updated = True
                 res = cls(profile)
                 Dbh.session.add(res)
-                print(f"\nCREATED RESOURCES: profile_id = {res.profile_id}")
-            else:
-                print(f"\nFOUND RESOURCES: profile_id = {r.profile_id}")    
-                
-    def __init__(self,profile):
-        self.profile_id = profile.id
-        self.shit  = 0
-        self.wood  = 0
-        self.gold  = 0
+
+    def __init__(self,profile=None,cost=[0,0,0]):
+        if profile:
+            print(profile)
+            self.profile_id = profile.id
+        self.shit  = cost[0]
+        self.wood  = cost[1]
+        self.gold  = cost[2]
         
     @property
     def resources(self):
@@ -103,21 +102,97 @@ class Resources(Dbh.Base):
         return True    
     
             
-    def asText(self):
-        return f"{ResourceEmojis.emojis['shit']}{self.shit} {ResourceEmojis.emojis['wood']}{self.wood} {ResourceEmojis.emojis['gold']}{self.gold}"
+    def asText(self,blank=True):
+        blank = '<:blank:551400844654936095>' if blank else ' '
+        return f"{ResourceEmojis.emojis['shit']}{self.shit}{blank}{ResourceEmojis.emojis['wood']}{self.wood}{blank}{ResourceEmojis.emojis['gold']}{self.gold}"
+    
+    
+    def compareAsText(self,resources):
+        blank = '<:blank:551400844654936095>'
+        comps = []
+        i = 0
+        for this_res, cmp_res in zip(self.resources,resources.resources):
+            r_name = ResourceEmojis.names[i]
+            
+            if cmp_res >= this_res:
+                emoji = ResourceEmojis.emojis[r_name]
+            else:
+                emoji = ResourceEmojis.emojis[r_name+'void']
+                
+            comps.append(f'{emoji}{cmp_res}/{this_res}')
+            
+            i += 1
+            
+        return blank.join(comps)
+    
+    def steal(self,capacity):
+        #bounty = self.__class__()
         
+        r = []
+        c = []
+        for res, cap in zip(self.resources, capacity.resources):
+            if res > cap:
+                res -= cap
+            else:
+                cap = res
+                res = 0
+            r.append(res)
+            c.append(cap)
+        self.setResources(r)
+        capacity.setResources(c)
         
     def addResources(self,res=[0,0,0]):
         self.shit += res[0]
         self.wood += res[1]
         self.gold += res[2]
+        return self
         
     def subResources(self,res=[0,0,0]):
         self.shit -= res[0]
         self.wood -= res[1]
         self.gold -= res[2]
+        return self
         
     def setResources(self,res=[0,0,0]):
         self.shit = res[0]
         self.wood = res[1]
         self.gold = res[2]
+        return self
+        
+    def __add__(self, res):
+        shit = self.shit + res.shit
+        wood = self.wood + res.wood
+        gold = self.gold + res.gold
+        return ResourcesBase(cost=[shit,wood,gold])
+        
+    def __sub__(self, res):
+        shit = self.shit - res.shit
+        wood = self.wood - res.wood
+        gold = self.gold - res.gold
+        return ResourcesBase(cost=[shit,wood,gold])
+    
+    def __mul__(self, multiplier):
+        shit = int(self.shit * multiplier)
+        wood = int(self.wood * multiplier)
+        gold = int(self.gold * multiplier)
+        return ResourcesBase(cost=[shit,wood,gold])
+
+    def __gt__(self, comp_res):
+        for res, cres in zip(self.resources,comp_res.resources):
+            if res < cres:
+                return False
+        return True
+
+class Resources(ResourcesBase, Dbh.Base):
+    update_interval = 120
+    last_update = 0
+    
+    __tablename__ = "resources"
+    
+    id = Column(Integer, primary_key=True)
+    profile_id = Column(Integer, ForeignKey('jurassicprofile.id'))
+    shit = Column(Integer)
+    wood = Column(Integer)
+    gold = Column(Integer)
+    
+    

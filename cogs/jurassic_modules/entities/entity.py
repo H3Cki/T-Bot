@@ -1,6 +1,7 @@
-from sqlalchemy import Column, ForeignKey, Integer, BigInteger, Boolean, String
+from sqlalchemy import Column, ForeignKey, Integer, BigInteger, Boolean, String, orm
+from sqlalchemy.events import event
 from ...utils.dbconnector import DatabaseHandler as Dbh
-from ..jurassicprofile import *
+from ..jurassicprofile import JurassicProfile
 
 
 
@@ -14,6 +15,7 @@ class ProfileEntity(Dbh.Base):
     profile_entity_id = Column(Integer, primary_key=True)
     profile_id = Column(Integer, ForeignKey('jurassicprofile.id'))
     entity_id = Column(Integer, ForeignKey(f'{ENTITY_TYPE}.entity_id'))
+    pe_count = Column(Integer, default=0)
 
     __mapper_args__ = {
         'polymorphic_identity' : TYPE
@@ -21,45 +23,105 @@ class ProfileEntity(Dbh.Base):
 
     # OBJECT METHODS AND PROPERTIES -------- #
     
-    def __init__(self,profile,entity):
+    def __init__(self,profile,entity,count=1):
         self.profile_id = profile.id
         self.entity_id = entity.entity_id
+        self.pe_count = count
 
 
-    @property
-    def profile(self):
-        return JP.getProfile(self.profile_id)
-    
     @property
     def entity(self):
-        return Entity.getEntity(self.entity_id)
+        return Entity.get(entity_id=self.entity_id)
+        
+    @property
+    def profile(self):
+        return JurassicProfile.getProfile(self.profile_id)   
+        
+    @property
+    def count(self):
+        return self.pe_count
     
-    def getCount(self, profile):
-        c = self.__class__
-        return Dbh.session.query(c).filter(c.profile_id == profile.id, c.entity_id == self.entity_id).count()
+    @count.setter
+    def count(self,value):
+        
+        if value <= 0:
+            print(f'DELETING {self}')
+            self.delete()
+        else:
+            self.pe_count = value
+        
+    @property
+    def briefText(self):
+        return self.entity.briefText + f" x{self.count}"
+
+
+    def delete(self,commit=False):
+        Dbh.session.delete(self)
+        if commit:
+            Dbh.commit()
 
     # CLASS METHODS ------------------------ #
     
     @classmethod
-    def getAllProfileEntities(cls,profile):
-        return Dbh.session.query(cls).filter(cls.profile_id == profile.id).all()
+    def add(cls,profile,entity,count=1):
+        this = cls.get(profile_id=profile.id,entity_id=entity.entity_id)
+        if not this:
+            this = cls(profile,entity,count)
+            Dbh.session.add(this)
+        else:
+            if isinstance(this,list):
+                this = this[0]
+            this.count += count
+        Dbh.session.commit()    
+        return this
     
     @classmethod
-    def getProfileEntities(cls,profile,entity):
-        return Dbh.session.query(cls).filter(cls.profile_id == profile.id, cls.entity_id == entity.id).all()
+    def get(cls,as_list=False,get_static=False,raw=False,**kwargs):
+        query = Dbh.session.query(cls)
+        for attr,value in kwargs.items():
+            query = query.filter(getattr(cls,  attr) == value)
+        if raw:
+            return query
+        result = query.all()
+        if get_static:
+            statics = []
+            for r in result:
+                statics.append(r.entity)
+            result = statics
+        return result
     
     @classmethod
-    def getProfileEntity(cls,profile,entity):
-        return Dbh.session.query(cls).filter(cls.profile_id == profile.id, cls.entity_id == entity.id).first()
+    def getCount(cls,**kwargs):
+        query = Dbh.session.query(cls)
+        for attr,value in kwargs.items():
+            query = query.filter(getattr(cls,  attr) == value)
+        return query.count()
 
+class EntityBase:
+    def delete(self):
+        Dbh.session.delete(self)
 
-class Entity(Dbh.Base):
+    @classmethod
+    def get(cls,as_list=False,raw=False,**kwargs):
+        query = Dbh.session.query(cls)
+        for attr,value in kwargs.items():
+            query = query.filter(getattr(cls,  attr) == value)
+        if raw:
+            return query
+        result = query.all()
+        if as_list == False:
+            if len(result) == 0:
+                result = None
+            elif len(result) == 1:
+                result = result[0]
+        return result
+
+class Entity(Dbh.Base, EntityBase):
     # CLASS ATTRIBUTES --------------------- #
     TYPE   = "entity"
     NAME   = "Basic Entity"
     EMOJI  = '📦'
     TIERED = False
-    EXTRAS = []
     
     # MAPPER ATTRIBUTES -------------------- #
     
@@ -73,10 +135,6 @@ class Entity(Dbh.Base):
     }
     
     # OBJECT METHODS AND PROPERTIES -------- #
-    
-    def __init__(self):
-        for extra in self.__class__.EXTRAS:
-            extra()
     
     @property
     def name(self):
@@ -96,56 +154,31 @@ class Entity(Dbh.Base):
             text += f" Tier {self.tier}"
         return text
     
-    
-    def requirements(self):
-        pass
-    
-    def inner_use(self):
-        pass
-    
-    def finalize(self):
-        pass
-    
-    async def act(self, ctx):
-        a = self.requirements()
-        b = self.inner_use()
-        c = self.finalize()
+    def count(self,profile):
+        return self.__class__.DROPS_AS.getAll(profile,self).count
+
         
     def delete(self):
         Dbh.session.delete(self)
     
+    def getEmoji(self,**kwg):
+        return self.emoji
+
     # CLASS METHODS ------------------------ #
 
     @classmethod
-    def getEntity(cls,id):
-        return Dbh.session.query(cls).filter(cls.entity_id == id).first()
+    def query(cls,**kwargs):
+        query = Dbh.session.query(cls)
+        for attr,value in kwargs.items():
+            query = query.filter(getattr(cls,  attr) == value)
+        return query
 
     @classmethod
-    def _getAll(cls):
-        return Dbh.session.query(cls)
-    
-    @classmethod
-    def getAll(cls):
-        return Dbh.session.query(cls).all()
-    
-    @classmethod
-    def getRandom(cls):
-        if cls.TIERED:
-            pass
-            #tier = Tier.getRandomTier()
-        else:
-            tier = None
-        
-        return Dbh.session.query(cls).filter(cls.tier == tier).one()
-    
-    @classmethod
-    def updateEntitys(cls):
+    def update(cls):
         pass
     
-    @classmethod
-    def drop(cls, profile):
-        random = cls.getRandom()
-        random.drop()
-        
+  
+    
+    
         
     
