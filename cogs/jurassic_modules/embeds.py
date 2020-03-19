@@ -40,3 +40,5 @@ def destructionEmbed(member):
 
 def greenEmbed(descr):
     return Embed(description=descr,colour=discord.Colour.from_rgb(25,255,0))
+def redEmbed(descr):
+    return Embed(description=descr,colour=discord.Colour.from_rgb(255,25,25))

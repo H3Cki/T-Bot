@@ -17,7 +17,6 @@ from sqlalchemy.inspection import inspect
 
 # from .jurassic_modules.jmap import JMap
 
-# from .jurassic_modules.embeds import *
 
 
 from .jurassic_modules.guild_settings import JGuildSettings
@@ -217,12 +216,26 @@ class JurrasicPark(commands.Cog):
             await ctx.send(f'To use this command specify who you want to attack by mentioning them. For example `!attack @{random.choice([str(member) for member in ctx.message.guild.members if not member.bot and not member == ctx.message.author])}`')
             return
         
+            
         member = ctx.message.author
         atk_prof = JP.get(member)
         atk_army = ProfileDino.get(profile_id=atk_prof.id)
         if not len(atk_army):
             await ctx.send(embed=discord.Embed(description=f"Dear {member.display_name}, you can't attack without having at least one dino in your army. Check !army or !help"))
+            return
+        
         def_prof = JP.get(target)
+        
+        if def_prof.last_destroyed:
+            delta = datetime.now() - def_prof.last_destroyed
+            td = timedelta(minutes=45)
+            if delta < td:
+                next_attack = (td - delta)
+                next_attack = str(next_attack).split('.')[0]
+                await ctx.send(embed=redEmbed(f'{target.display_name} was rekt recently, gods of Jurassic Park are protecting his base. Their power will last {next_attack}'))
+                return
+        
+        
         def_army = ProfileDino.get(profile_id=def_prof.id)
         
         base_army_at = Army(atk_prof,atk_army)
@@ -698,7 +711,6 @@ class JurrasicPark(commands.Cog):
         # Dbh.session.execute('DROP TABLE profile_dino;')
         # Dbh.session.execute('DROP TABLE profile_dino_part;')
         # Dbh.session.execute('DROP TABLE profile_entity;')
-        Dbh.session.execute('SELECT * FROM entity;')
 
 
 

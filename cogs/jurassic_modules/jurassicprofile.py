@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, ForeignKey, Float, Integer, BigInt
 from ..utils.dbconnector import DatabaseHandler as Dbh
 from .resources import Resources
 from ..botinstance import bot
-
+from datetime import datetime, timedelta
 
 class JurassicProfile(Dbh.Base):
     __tablename__ = "jurassicprofile"
@@ -12,7 +12,11 @@ class JurassicProfile(Dbh.Base):
     guild_id = Column(BigInteger)
     send_notification = Column(Boolean)
     last_attack = Column(TIMESTAMP)
-    last_attacked = Column(TIMESTAMP)
+    last_destroyed = Column(TIMESTAMP)
+
+
+    ATTACKED_COOLDOWN = timedelta(minutes=45)
+
 
     @classmethod
     def get(cls,member=None,as_list=False,create=True,**kwargs):
@@ -40,7 +44,6 @@ class JurassicProfile(Dbh.Base):
     def __init__(self, member_id, guild_id):
         self.member_id = member_id
         self.guild_id = guild_id
-        self.exp = 0.0
         self.setup()
         
     def setup(self):

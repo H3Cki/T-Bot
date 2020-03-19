@@ -109,7 +109,9 @@ class DinoBattle:
         elif self.def_army.isAlive():
             self.outcome = f'{self.def_army.profile.member.display_name} WINS'
             self.winner = self.def_army.profile
-        
+        if not self.def_army.isAlive():
+            self.def_army.profile.last_destroyed = self.timestamp
+            
     def battleLoop(self):
         while not self.isFinished() and self.turns < self.MAX_TURNS:
             self.turns += 1
@@ -186,16 +188,19 @@ class Army:
             t.pop(-2)
         return "\n".join(t)
 
-
-    def plunderResources(self,target_army):
-        temp_res = target_army.profile.resources.copy()
-        
+    def getCapacity(self):
         capacity = ResourcesBase()
         for dino in self.getAliveDinos():
             base_cap = int((dino.health*0.05)/dino.tier)
             capacity.shit += base_cap
             capacity.wood += int(base_cap*0.75)
             capacity.gold += int(base_cap*0.25)
+        return capacity
+
+    def plunderResources(self,target_army):
+        temp_res = target_army.profile.resources.copy()
+        
+        capacity = self.getCapacity()
         
         target_army.profile.resources.steal(capacity)
 
