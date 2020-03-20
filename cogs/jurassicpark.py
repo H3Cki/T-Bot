@@ -260,7 +260,6 @@ class JurrasicPark(commands.Cog):
    
         member = member or ctx.message.author
         profile = JP.get(member)
-        print(f"MEMBER ID: {member.id} | PROFILE ID: {profile.member_id}")
         dl = list(sorted(ProfileDino.get(profile_id=profile.id), key=lambda x: x.count, reverse=True))
         embed = discord.Embed(title = f"{member.display_name} - {sum([d.count for d in dl])} OWNED DINOSAURS" ,color=discord.Color.from_rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255)))
         embed.set_thumbnail(url='https://compote.slate.com/images/73f8ce3a-7952-48d5-bbf3-c4e25dc3a144.jpeg')
@@ -283,7 +282,6 @@ class JurrasicPark(commands.Cog):
             for _ in range(pdino.count):
                 all_dinos.append(pdino.entity)
         total_stats = StaticDino.sumStats(all_dinos,as_text=True)
-        print(f'Summed stats of {len(all_dinos)} dinos')
         embed.description = f"`🔥` Power: {total_stats}\nAvgerage Tier: {round(sum([pd.entity.tier for pd in dl])/(len(dl) or 1))}"
         #embed.set_footer(text=f"Click wiki icon for more info about dinos.")
         await ctx.send(embed=embed)
@@ -331,12 +329,10 @@ class JurrasicPark(commands.Cog):
         results = []
         for c in Buildable.__subclasses__():
             result = c.get(as_list=True,name=item_name)
-            print(f"{result} = {c}.get(name={item_name})")
             if result:
                 result = result[0]
                 for _ in range(count):
                     results.append(result)
-        print(results)
     
         await Buildable.buildEvent(profile,results,lab=Lab(profile))
 
@@ -608,7 +604,6 @@ class JurrasicPark(commands.Cog):
                 static_dino = StaticDino.getDinoFromChannelName(channel.name)
                 if static_dino:
                     self.channels[guild.id].append(channel)
-            print(len(self.channels[guild.id]))
         
     async def shuffle_channels(self,bot,g,gs):
         
@@ -654,12 +649,9 @@ class JurrasicPark(commands.Cog):
     
     async def core(self,limit=True,dino_name=None):
         for g in self.bot.guilds:
-            print(f"A GUILD: {g.name}")
             gs = JGuildSettings.get(g.id)
             if not gs.voiceReady:
-                print(f"{g.name} NOT READY")
                 continue
-            print(f"{g.name} READY")
             category = gs.category
             if len(self.channels[g.id]) >= 3 and limit:
                 continue
@@ -747,8 +739,6 @@ class JurrasicPark(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         for guild in self.bot.guilds:
-            for channel in guild.voice_channels:
-                print(f'{channel.name}, {channel.position}')
             gs = JGuildSettings.get(guild.id)
             if not gs:
                 o = JGuildSettings(guild.id)
