@@ -16,9 +16,9 @@ from .discovery import Discovery
 from .entities.entity import Entity, ProfileEntity
 from .entities.droppable import Droppable
 from .entities.buildable import *
-#from .part_info import DinoPart, ProfilePart
 from .tiers import getTier
 from .resources import ResourcesBase
+
 def checkURL(url):
     req = requests.get(url)
     if req.status_code == 200:

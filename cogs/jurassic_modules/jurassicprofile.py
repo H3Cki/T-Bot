@@ -49,7 +49,6 @@ class JurassicProfile(Dbh.Base):
     def setup(self):
         self.battles = []
 
-
     @property
     def resources(self):
         return Resources.getResources(profile=self)
@@ -61,6 +60,7 @@ class JurassicProfile(Dbh.Base):
     @property
     def member(self):
         return self.guild.get_member(self.member_id)
+
 
     def text(self):
         return f"[PROFIL {self.id}]\n {self.member_id}] in {self.guild_id}: {self.exp} exp."

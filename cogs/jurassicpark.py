@@ -41,6 +41,7 @@ class JurrasicPark(commands.Cog):
         self.visitors = {}
         self.last_shuffle = 0
         self.shuffle_interval = 1200
+        self.channels = {}
     #
     #
     # COMBAT HERE ---------------------------
@@ -599,8 +600,15 @@ class JurrasicPark(commands.Cog):
             
             
             
-            
-            
+    async def find_channels(self):
+        self.channels = {}
+        for guild in self.bot.guilds:
+            self.channels[guild.id] = []
+            for channel in guild.voice_channels:
+                static_dino = StaticDino.getDinoFromChannelName(channel.name)
+                if static_dino:
+                    self.channels[guild.id].append(channel)
+            print(len(self.channels[guild.id]))
         
     async def shuffle_channels(self,bot,g,gs):
         
@@ -653,7 +661,7 @@ class JurrasicPark(commands.Cog):
                 continue
             print(f"{g.name} READY")
             category = gs.category
-            if len(category.voice_channels) >= 4 and limit:
+            if len(self.channels[g.id]) >= 3 and limit:
                 continue
             dino = random.choice(StaticDino.get(tier=round(random.triangular(1, 5, 5)))) if not dino_name else StaticDino.get(as_list=False,name=dino_name)
             
@@ -664,10 +672,14 @@ class JurrasicPark(commands.Cog):
                 emoji = '❓'
                 tier = ''
                 
-                await category.create_voice_channel(f"{emoji} {dino.name.capitalize()}"+tier)
-
+                channel = await category.create_voice_channel(f"{emoji} {dino.name.capitalize()}"+tier)
+                r = random.randint(0,len(category.voice_channels))
+                if r != len(category.voice_channels):
+                    await channel.edit(position=r)
+                
     async def simpleChannelDropLoop(self):
         while True:
+            await self.find_channels()
             await self.core()
             await asyncio.sleep(400)
 
@@ -717,8 +729,6 @@ class JurrasicPark(commands.Cog):
         Dbh.createTables()
         #StaticDino.updateDinos()
         dinos = StaticDino.get()
-
-            
         DinoPart.update(dinos)
         JP.updateProfiles()
         Resources.updateResources(JP.get(as_list=True))
@@ -737,6 +747,8 @@ class JurrasicPark(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         for guild in self.bot.guilds:
+            for channel in guild.voice_channels:
+                print(f'{channel.name}, {channel.position}')
             gs = JGuildSettings.get(guild.id)
             if not gs:
                 o = JGuildSettings(guild.id)
