@@ -677,7 +677,7 @@ class JurrasicPark(commands.Cog):
         while True:
             await self.find_channels()
             await self.core()
-            await asyncio.sleep(400)
+            await asyncio.sleep(1600)
 
     async def loop(self):
         while True:
