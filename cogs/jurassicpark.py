@@ -653,8 +653,6 @@ class JurrasicPark(commands.Cog):
             if not gs.voiceReady:
                 continue
             category = gs.category
-            if len(self.channels[g.id]) >= 3 and limit:
-                continue
             dino = random.choice(StaticDino.get(tier=round(random.triangular(1, 5, 5)))) if not dino_name else StaticDino.get(as_list=False,name=dino_name)
             
             if dino.isDiscovered(g.id):
@@ -664,10 +662,16 @@ class JurrasicPark(commands.Cog):
                 emoji = '❓'
                 tier = ''
                 
+            channel = None
+            if len(self.channels[g.id]) >= 4 and limit:
+                channel = random.choice(self.channels[g.id])
+                await channel.edit(name=f"{emoji} {dino.name.capitalize()}"+tier)
+            else:
                 channel = await category.create_voice_channel(f"{emoji} {dino.name.capitalize()}"+tier)
-                r = random.randint(0,len(category.voice_channels))
-                if r != len(category.voice_channels):
-                    await channel.edit(position=r)
+                
+            r = random.randint(0,len(category.voice_channels))
+            if r != len(category.voice_channels):
+                await channel.edit(position=r)
                 
     async def simpleChannelDropLoop(self):
         while True:
