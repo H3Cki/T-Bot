@@ -150,7 +150,7 @@ class Entity(Dbh.Base, EntityBase):
     # OBJECT METHODS AND PROPERTIES -------- #
     
     @property
-    def name(self):
+    def _name(self):
         return self.__class__.NAME
             
     @property
