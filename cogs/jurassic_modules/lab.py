@@ -21,8 +21,13 @@ class Lab:
     def __init__(self,profile,cog=None,naked=False):
         self.profile = profile
         self.cog = cog
+        self.naked = naked
         
-        self.parts = ProfileDinoPart.get(profile_id = profile.id)
+        self.setup()
+ 
+    
+    def setup(self):
+        self.parts = ProfileDinoPart.get(profile_id = self.profile.id)
         self.dinos_with_parts = []
         
         for part in self.parts:
@@ -38,13 +43,12 @@ class Lab:
         
         
         if self.cog:
-            self.dinos_with_parts = list(sorted(self.dinos_with_parts,key = lambda x: (self.cog.isDinoLive(profile.guild,profile.member,x.name), x.buildRequirements().requirementsMet(self.profile,noex=True,boolean=True), self.profile.resources > x.buildCost(self.profile.guild_id,self)), reverse=True))
+            self.dinos_with_parts = list(sorted(self.dinos_with_parts,key = lambda x: (self.cog.isDinoLive(self.profile.guild,self.profile.member,x.name), x.buildRequirements().requirementsMet(self.profile,noex=True,boolean=True), self.profile.resources > x.buildCost(self.profile.guild_id,self)), reverse=True))
         
-        if naked == False:
-            self.dino_split_list = splitList(self.dinos_with_parts,8)
+        if self.naked == False:
+            self.dino_split_list = splitList(self.dinos_with_parts,7)
             self.page_idx = 0
             self.total_pages = len(self.dino_split_list)
- 
     
     def getList(self):
         return self.dino_split_list[self.page_idx] if self.total_pages else self.dino_split_list
@@ -71,6 +75,7 @@ class Lab:
                 await msg.delete()
                 return
             if reaction.emoji == Lab.CONTROLS['reload']:
+                self.setup()
                 pass
             
             starting_page_idx = self.page_idx
