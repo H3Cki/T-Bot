@@ -165,7 +165,7 @@ class JurrasicPark(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     async def emojiid(self,ctx):
         for part in ProfileDinoPart.get():
-            if part.entity.is_random:
+            if part.entity.parent.is_random:
                 part.delete()
             
 
