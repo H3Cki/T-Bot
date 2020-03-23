@@ -7,7 +7,7 @@ from math import ceil
 
 class Lab:
     
-    MAX_CAPACITY = 24
+    MAX_CAPACITY = 16
     
     CONTROLS = {
         'prev' : u'◀',

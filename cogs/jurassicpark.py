@@ -491,27 +491,26 @@ class JurrasicPark(commands.Cog):
         Dbh.commit()
         
     @commands.command(name='ratedinos')
-    async def ratedinos(self,ctx,dino_name=None,review=''):
+    async def ratedinos(self,ctx,dino_name=None,review=False):
         """
         Rates dinos which are currently randomized
         """
-        if len(review):
-            review = False
-        else:
+        if dino_name == "review":
+            dino_name = None
             review = True
-        # if len(dl) == len(StaticDino.get()):
-        #     await ctx.send(embed=discord.Embed(description="All dinos set"))
-        #     return
+
 
         my_channel = self.bot.get_guild(247039921825513472).get_channel(595291660728926218)
         to_remove = []
         if dino_name:
             dinolist = StaticDino.get(as_list=True,name=dino_name)
         else:
-            dinolist = StaticDino.get(as_list=True,is_random=True)
+            dinolist = StaticDino.get(as_list=True,is_random=not review)
+        i = -1
         while len(dinolist):
+            i += 1
             if not dino_name:
-                dinolist = StaticDino.get(as_list=True,is_random=True)
+                dinolist = StaticDino.get(as_list=True,is_random=not review)
             dino = random.choice(dinolist)
             n_total = len(StaticDino.get())
             breaker = False
@@ -653,8 +652,10 @@ class JurrasicPark(commands.Cog):
             if not gs.voiceReady:
                 continue
             category = gs.category
-            dino = random.choice(StaticDino.get(tier=round(random.triangular(1, 5, 5)))) if not dino_name else StaticDino.get(as_list=False,name=dino_name)
-            
+            dino = random.choice(StaticDino.get(is_random=False,tier=round(random.triangular(1, 5, 5)))) if not dino_name else StaticDino.get(is_random=False,as_list=False,name=dino_name)
+            if not dino:
+                print("NO DINO")
+                return
             if dino.isDiscovered(g.id):
                 emoji = StaticDino.emoji
                 tier = f" ᴛ{dino.tier}"
