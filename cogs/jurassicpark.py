@@ -678,12 +678,13 @@ class JurrasicPark(commands.Cog):
                 print("NO DINO")
                 return
             if dino.isDiscovered(g.id):
-                emoji = StaticDino.emoji
+                emoji = StaticDino.EMOJI
                 tier = f" ᴛ{dino.tier}"
             else:
                 emoji = '❓'
                 tier = ''
-                
+            
+            
             channel = None
             if len(self.channels[g.id]) >= 4 and limit:
                 channel = random.choice(self.channels[g.id])
