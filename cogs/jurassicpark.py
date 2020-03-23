@@ -282,7 +282,7 @@ class JurrasicPark(commands.Cog):
                 info = "EXTINCT"
             info = ''
             txt = f"{DSE.emojis['blank']}{DSE.emojis['damage']}{str(d.damage)}{DSE.emojis['blank']}{DSE.emojis['armor']}{str(d.armor)}{DSE.emojis['blank']}{DSE.emojis['health']}{str(d.health)}{DSE.emojis['blank']}{DSE.emojis['speed']}{str(d.speed)}{DSE.emojis['blank']}{info}"
-            count_text = f"(x{pd.count})"# if pd.count > 1 else ''
+            count_text = f"(x{pd.count})" if pd.count > 1 else ''
             embed.add_field(name=f"`{i+1} {d.emoji}` **{d.name.capitalize()}**#{d.entity_id} - Tier {d.tier} {count_text}",value=txt,inline=False)
         
         all_dinos = []
@@ -319,7 +319,11 @@ class JurrasicPark(commands.Cog):
         profile = JP.get(ctx.message.author)
         lab = Lab(profile,cog=self)
     
-
+        # if extra == 'build':
+        #     if args == 'all':
+        #         await Buildable.buildEvent(profile,lab.dinos_with_parts,lab=Lab(profile),no_warning=True)
+        #     return
+        
         await lab.start(ctx)
 
 
@@ -332,17 +336,26 @@ class JurrasicPark(commands.Cog):
             await ctx.send(f'To use this command specify what you want to build.\nFor example `!build diplodocus`.\nBuilding non-discovered dino always costs {StaticDino.BASE_BUILD_COST} in other cases base cost is dictated by tier.\nUse command `!lab` to check what you have')
             return
         profile = JP.get(ctx.message.author)
-        found = False
         item_name = item_name.lower()
+        lab = Lab(profile)
+        
         results = []
-        for c in Buildable.__subclasses__():
-            result = c.get(as_list=True,name=item_name)
-            if result:
-                result = result[0]
-                for _ in range(count):
-                    results.append(result)
+        
+        no_warning = False
+        infinite = False
+        if item_name == 'all':
+            results = lab.dinos_with_parts
+            no_warning = True
+            infinite = True
+        else:
+            for c in Buildable.__subclasses__():
+                result = c.get(as_list=True,name=item_name)
+                if result:
+                    result = result[0]
+                    for _ in range(count):
+                        results.append(result)
     
-        await Buildable.buildEvent(profile,results,lab=Lab(profile))
+        await Buildable.buildEvent(profile,results,lab=lab,no_warning=no_warning,infinite=infinite)
 
 
 
@@ -760,7 +773,8 @@ class JurrasicPark(commands.Cog):
             for member in guild.members:
                 if member.bot:
                     JP.get(member)
-                
+        
+        
         self.bot.loop.create_task(self.loop())
         self.bot.loop.create_task(self.simpleChannelDropLoop())
         

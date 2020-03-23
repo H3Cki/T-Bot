@@ -143,9 +143,9 @@ class Lab:
             embed.add_field(name=f"{emoji} {dino.name.upper()}{tier}"+ilt,value=stats_txt+reqs_txt+bc_txt+build_txt,inline=False)
         
         warning = f'\n❗ After exceeding {self.MAX_CAPACITY} slots build cost for all dinos will be increased' if len(self.dinos_with_parts) > self.MAX_CAPACITY - 5 else ''
-        legend = '\n`🔥` Stats\n`🔸` Parts required\n`🔺` Resources required'
+        legend = '\n🔥-Stats, 🔸-Parts required, 🔺-Resources required'
         page_txt = f'[Page: {self.page_idx+1}/{self.total_pages}]\n' if len(self.dino_split_list) > 1 else ''
-        embed.set_footer(text=f'{page_txt}Use command !build to build a dino.'+legend+warning)
+        embed.set_footer(text=f'{page_txt}Use command !build to build a dino, or !build all to build everything'+legend+warning)
         return embed
     
     
