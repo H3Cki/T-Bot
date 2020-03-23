@@ -154,7 +154,7 @@ class Army:
                 break
             target = random.choice(ta)
             dino.attack(target)
-            target.attack(dino)
+            #target.attack(dino)
 
     def isAlive(self):
         return len(self.getAliveDinos()) > 0
