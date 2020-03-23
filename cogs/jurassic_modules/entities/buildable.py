@@ -87,13 +87,27 @@ class Buildable:
         lab = kwargs.get('lab', None)
         successfully_built =  []
         unsucces_built = []
+        no_warning = kwargs.get('no_warning',False)
+        infinite = kwargs.get('infinite',False)
+        
         for item in items:
-            try:
-                item._build(profile,lab)
-                successfully_built.append(item)
-            except Exception as e:
-                unsucces_built.append(item)
-                continue
+            ex = False
+            if infinite:
+                while True:
+                    try:
+                        item._build(profile,lab)
+                        successfully_built.append(item)
+                    except Exception as e:
+                        unsucces_built.append(item)
+                        ex = True
+                        break
+            else:
+                try:
+                    item._build(profile,lab)
+                    successfully_built.append(item)
+                except Exception as e:
+                    unsucces_built.append(item)
+                    continue
                 
         if successfully_built:
             drop = await Droppable.dropEvent(member,profile,items=successfully_built)
@@ -105,8 +119,15 @@ class Buildable:
                         Dbh.session.add(di)
                         await gs.send(content=f'New discovery by {member.display_name}!',embed=d.getEmbed())
             Dbh.commit()
-        if unsucces_built:
+        
+        else:
+            if no_warning:
+                await gs.send(embed=discord.Embed(description=f'No items could be built.'))
+        
+        if unsucces_built and no_warning == False:
             await gs.send(embed=Buildable.unsuccessfulEmbed(unsucces_built))
+            
+        
 
     @staticmethod
     def unsuccessfulEmbed(items):

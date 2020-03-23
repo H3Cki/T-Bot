@@ -7,10 +7,10 @@ import discord
 class Rewards:
     rewards = {
         'online' : [1,0,0],
-        'on_voice_chat' : [1,1,1],
-        'playing' : [1,1,0],
-        'company' : [1,1,0],
-        'discovery' : [80,40,20]
+        'on_voice_chat' : [3,2,1],
+        'playing' : [1,1,1],
+        'company' : [2,2,1],
+        'discovery' : [150,100,25]
     }
     
     @classmethod
@@ -28,8 +28,6 @@ class Rewards:
             packets.append(cls.rewards['on_voice_chat'])
             if member.activity:
                 packets.append(cls.rewards['playing'])
-        
-        
         
         for packet in packets:
             reward[0] += packet[0]
