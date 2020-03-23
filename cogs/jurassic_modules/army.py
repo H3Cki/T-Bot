@@ -191,7 +191,7 @@ class Army:
     def getCapacity(self):
         capacity = ResourcesBase()
         for dino in self.getAliveDinos():
-            base_cap = int((dino.health*0.05)/dino.tier)
+            base_cap = int(dino.health/dino.tier)
             capacity.shit += base_cap
             capacity.wood += int(base_cap*0.75)
             capacity.gold += int(base_cap*0.25)
