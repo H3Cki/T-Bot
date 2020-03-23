@@ -36,7 +36,9 @@ class Lab:
         self.cost_multiplier = round(1 + ((len(self.dinos_with_parts)-self.MAX_CAPACITY))/4,1) if len(self.dinos_with_parts) > self.MAX_CAPACITY else 1
         self.cost_multiplier_perc = (self.cost_multiplier*100)-100
         
-        self.dinos_with_parts = list(sorted(self.dinos_with_parts,key = lambda x: (self.cog.isDinoLive(profile.guild,profile.member,x.name), x.buildRequirements().requirementsMet(self.profile,noex=True,boolean=True), self.profile.resources > x.buildCost(self.profile.guild_id,self)), reverse=True))
+        
+        if self.cog:
+            self.dinos_with_parts = list(sorted(self.dinos_with_parts,key = lambda x: (self.cog.isDinoLive(profile.guild,profile.member,x.name), x.buildRequirements().requirementsMet(self.profile,noex=True,boolean=True), self.profile.resources > x.buildCost(self.profile.guild_id,self)), reverse=True))
         
         if naked == False:
             self.dino_split_list = splitList(self.dinos_with_parts,8)

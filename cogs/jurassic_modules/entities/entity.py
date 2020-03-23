@@ -65,12 +65,12 @@ class ProfileEntity(Dbh.Base):
     @classmethod
     def valueOfProfile(cls,profile):
         countable = ['dino']
-        assets = cls.get(as_list=True)
+        assets = cls.get(as_list=True,profile_id=profile.id)
         v = 0
         for asset in assets:
             asset = asset.entity
             if asset.entity_type in countable:
-                res = asset.buildCost().resources
+                res = asset.buildCost(profile.guild_id).resources
                 for r in res:
                     v += r
         return v
