@@ -63,6 +63,19 @@ class ProfileEntity(Dbh.Base):
     # CLASS METHODS ------------------------ #
     
     @classmethod
+    def valueOfProfile(cls,profile):
+        countable = ['dino']
+        assets = cls.get(as_list=True)
+        v = 0
+        for asset in assets:
+            asset = asset.entity
+            if asset.entity_type in countable:
+                res = asset.buildCost().resources
+                for r in res:
+                    v += r
+        return v
+    
+    @classmethod
     def add(cls,profile,entity,count=1):
         this = cls.get(profile_id=profile.id,entity_id=entity.entity_id)
         if not this:

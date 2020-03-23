@@ -474,7 +474,7 @@ class JurrasicPark(commands.Cog):
         # #Dbh.session.add(owned_dino)
         # dino._drop(profile)
         for _ in range(count):
-            await StaticDino.dropEvent(target,profile)
+            await StaticDino.dropEvent(target,profile,silent=True)
             #pds = ProfileDino.get(profile_id=profile.id)
         #await ctx.send('\n'.join([pd.briefText for pd in pds]))
             

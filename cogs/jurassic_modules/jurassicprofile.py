@@ -48,6 +48,7 @@ class JurassicProfile(Dbh.Base):
         
     def setup(self):
         self.battles = []
+  
 
     @property
     def resources(self):
