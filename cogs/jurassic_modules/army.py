@@ -268,10 +268,9 @@ class Dino(Copy):
     def canDodge(self,damage,kwargs):
         consecutive = kwargs.get('consecutive',1)
         speed_ratio = self.getSpeedRatio(damage.source)
-        if speed_ratio > 0.5:
-            speed_ratio = 0.5    
+        if speed_ratio > 0.33:
+            speed_ratio = 0.33   
         if random.uniform(0,1) < speed_ratio/consecutive:
-            print(  "<<<DODGED>>>")
             return True     
         return False
     
