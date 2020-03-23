@@ -78,9 +78,11 @@ class voiceStateUpdateHandler:
             for d in drop:
                 if isinstance(d,StaticDino):
                     if not d.isDiscovered(member.guild.id):
+                        profile.resources.addResources(Rewards.rewards['discovery'])
                         di = Discovery(d.name,profile.id,profile.guild_id)
                         Dbh.session.add(di)
                         await gs.send(content=f'New discovery by {member.display_name}!',embed=d.getEmbed())
+                        
                             
             Dbh.commit()
             try:
