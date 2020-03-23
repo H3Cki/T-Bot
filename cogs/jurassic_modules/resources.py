@@ -6,11 +6,11 @@ import discord
 
 class Rewards:
     rewards = {
-        'online' : [2,1,0],
-        'on_voice_chat' : [6,4,2],
-        'playing' : [4,2,1],
+        'online' : [1,0,0],
+        'on_voice_chat' : [3,2,1],
+        'playing' : [1,1,1],
         'company' : [0,1,1],
-        'discovery' : [200,100,50]
+        'discovery' : [400,200,50]
     }
     
     @classmethod
@@ -182,7 +182,7 @@ class ResourcesBase(Copy):
         return True
 
 class Resources(ResourcesBase, Dbh.Base):
-    update_interval = 120
+    update_interval = 60
     last_update = 0
     
     __tablename__ = "resources"

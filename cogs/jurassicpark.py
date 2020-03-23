@@ -730,7 +730,7 @@ class JurrasicPark(commands.Cog):
             if rewarded:
                 Resources.last_update = time.time()
                 Dbh.session.commit()
-            await asyncio.sleep(60)
+            await asyncio.sleep(50)
 
     def setupDB(self):
         Dbh.init()
