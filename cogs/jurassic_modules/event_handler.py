@@ -73,7 +73,7 @@ class voiceStateUpdateHandler:
             
             
             for d in drop:
-                if isinstance(drop,StaticDino):
+                if isinstance(d,StaticDino):
                     if not d.isDiscovered(member.guild.id):
                         di = Discovery(d.name,profile.id,profile.guild_id)
                         Dbh.session.add(di)
