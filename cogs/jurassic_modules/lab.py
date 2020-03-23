@@ -31,6 +31,8 @@ class Lab:
             if dino not in self.dinos_with_parts:
                 self.dinos_with_parts.append(dino)
               
+        self.dinos_with_parts = list(sorted(self.dinos_with_parts,key = lambda x: self.cog.isDinoLive(profile.guild,profile.member,x.name)))
+              
         self.cost_multiplier = round(1 + ((len(self.dinos_with_parts)-self.MAX_CAPACITY))/4,1) if len(self.dinos_with_parts) > self.MAX_CAPACITY else 1
         self.cost_multiplier_perc = (self.cost_multiplier*100)-100
         
