@@ -199,7 +199,7 @@ class JurrasicPark(commands.Cog):
             for pdino in owned_dinos:
                 for _ in range(pdino.count):
                     all_dinos.append(pdino.entity)
-            e.add_field(name="Army",value=StaticDino.sumStats(all_dinos,True),inline=False)
+            e.add_field(name="Value",value=ProfileEntity.valueOfProfile(profile),inline=False)
             discoveries = Discovery.get(as_list=True,profile_id=profile.id)
             e.add_field(name="Dinos", value=f"{len(all_dinos)} owned\n{len(discoveries)} discovered",inline=False)
             
@@ -303,14 +303,14 @@ class JurrasicPark(commands.Cog):
         return False
 
     @commands.command(name='lab')
-    async def member_assembly(self,ctx):
+    async def member_assembly(self,ctx,extra=None,*,args=None):
         """
         Shows member's dino lab
         """
         
         profile = JP.get(ctx.message.author)
         lab = Lab(profile,cog=self)
-        
+    
 
         await lab.start(ctx)
 
