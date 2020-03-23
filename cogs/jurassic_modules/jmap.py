@@ -32,7 +32,6 @@ class JMap:
             e.add_field(name=f"`{idx} 🗺️` {member.display_name}",value=text,inline=True)
             
             
-        
         return e
     
         
