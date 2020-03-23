@@ -180,7 +180,7 @@ class Army:
                 continue
             checked.append(dino.name)
             t.append(f'`{DSE.emojis["dino1"]} T{dino.tier}` **{dino.name.capitalize()}** `{[dino.name for dino in self.starting_dinos].count(dino.name)}` → `{dinos_names.count(dino.name)}`')
-        total_stats = StaticDino.sumStats(self.getAliveDinos(),as_text=True)
+        total_stats = StaticDino.sumStats([dino.static_dino for dino in self.getAliveDinos()],as_text=True)
         t.append(f"`💀` Survived: {total_stats}")
         
  
@@ -191,7 +191,7 @@ class Army:
     def getCapacity(self):
         capacity = ResourcesBase()
         for dino in self.getAliveDinos():
-            base_cap = int(dino.health/dino.tier)
+            base_cap = int(2*dino.health/dino.tier)
             capacity.shit += base_cap
             capacity.wood += int(base_cap*0.75)
             capacity.gold += int(base_cap*0.25)
@@ -199,6 +199,7 @@ class Army:
 
     def plunderResources(self,target_army):
         temp_res = target_army.profile.resources.copy()
+        temp_res = temp_res*0.5
         
         capacity = self.getCapacity()
         
@@ -249,23 +250,28 @@ class Dino(Copy):
         return Damage(self.damage,self)
     
     def attack(self,dino):
-        #print(f'{self.name}#{self.static_dino.entity_id}{self.statsBrief()} attacks {dino.name}#{dino.static_dino.entity_id}{dino.statsBrief()}')
+        print(f'{self.name}#{self.static_dino.entity_id}{self.statsBrief()} attacks {dino.name}#{dino.static_dino.entity_id}{dino.statsBrief()}')
         i = 1
-        while i == 1 or (random.uniform(0,1) < (self.getSpeedRatio(dino)*0.33)/i and dino.alive):
+        while i == 1 or (random.uniform(0,1) < (self.getSpeedRatio(dino)*0.1)/i and dino.alive):
             damage = self.getDamage()
             damage.target = dino
-            dino.getHit(damage)
+            dino.getHit(damage,consecutive=i)
             i += 1
+            
     def getSpeedRatio(self,source):
         try:
-            speed_ratio = self.speed-source.speed
+            speed_ratio = self.speed/source.speed
         except:
             speed_ratio = (self.speed-1)*0.25
         return speed_ratio
     
-    def canDodge(self,damage):
-        speed_ratio = self.getSpeedRatio(damage.source)         
-        if random.uniform(0,1) < speed_ratio*0.25:
+    def canDodge(self,damage,kwargs):
+        consecutive = kwargs.get('consecutive',1)
+        speed_ratio = self.getSpeedRatio(damage.source)
+        if speed_ratio > 0.5:
+            speed_ratio = 0.5    
+        if random.uniform(0,1) < speed_ratio/consecutive:
+            print(  "<<<DODGED>>>")
             return True     
         return False
     
@@ -282,6 +288,8 @@ class Dino(Copy):
         self.armor = new_armor if new_armor >= 0 else 0
         
         damage.value -= start_armor
+        if damage.value < 0:
+            damage.value = 0
     
     def reduceDamage(self,damage):
         self.damageArmorReduce(damage)
@@ -290,12 +298,11 @@ class Dino(Copy):
     def takeDamage(self,damage):
 
         self.health -= damage.value
-        #print(f'    {self.health} after attack')
+        print(f'    {self.health} after attack')
     
-    def getHit(self,damage):
-        #print(f' INCOMING {damage.value} DAMAGE')
-        if self.canDodge(damage):
-
+    def getHit(self,damage,**kwargs):
+        print(f' INCOMING {damage.value} DAMAGE')
+        if self.canDodge(damage,kwargs):
             return
         
         self.reduceDamage(damage)

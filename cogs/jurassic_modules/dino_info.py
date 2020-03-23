@@ -266,7 +266,7 @@ class StaticDino(Entity,Droppable, Buildable):
             stats[1] += dino.armor
             stats[2] += dino.health
             stats[3] += dino.speed
-        stats[3] = round(stats[3]/(len(dinos) or 1),2)
+        stats[3] = round(stats[3]/(len(dinos) or 1))
         if as_text:
             stats = f"{DinoStatEmojis.emojis['damage']}{stats[0]}{DinoStatEmojis.emojis['blank']}{DinoStatEmojis.emojis['armor']}{stats[1]}{DinoStatEmojis.emojis['blank']}{DinoStatEmojis.emojis['health']}{stats[2]}{DinoStatEmojis.emojis['blank']}{DinoStatEmojis.emojis['speed']}{stats[3]}"
         return stats

@@ -50,7 +50,8 @@ class Droppable: #Doesnt work when not inherited by class that inherits from Ent
         
         for item in items:
             item._drop(profile)
-        await cls.sendEmbed(member,embed,gs)
+        if not kwargs.get('silent',None):
+            await cls.sendEmbed(member,embed,gs)
         
         return items
         
