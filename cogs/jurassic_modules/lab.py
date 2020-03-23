@@ -52,10 +52,10 @@ class Lab:
     async def start(self,ctx):
         embed = self.getEmbed(self.getList())
         msg = await ctx.send(embed=embed)
-        if len(self.dino_split_list) <= 1:
-            return
-        await msg.add_reaction(Lab.CONTROLS['prev'])
-        await msg.add_reaction(Lab.CONTROLS['next'])
+        if len(self.dino_split_list) > 1:
+            await msg.add_reaction(Lab.CONTROLS['prev'])
+            await msg.add_reaction(Lab.CONTROLS['next'])
+        
         await msg.add_reaction(Lab.CONTROLS['reload'])
         await msg.add_reaction(Lab.CONTROLS['stop'])
         
