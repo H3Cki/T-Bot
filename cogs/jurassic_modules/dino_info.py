@@ -506,8 +506,7 @@ class DinoPart(Entity,Droppable):
     @property
     def parent(self):
         print(f"GETTING DINO")
-
-        return StaticDino.get(entity_id=self.parent_entity_id)
+        return StaticDino.get(name=self.dino_name)
 
     @property
     def briefText(self):
