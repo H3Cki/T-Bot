@@ -68,9 +68,9 @@ class voiceStateUpdateHandler:
             member = self.member
             l = DinoPart.get(as_list=True,dino_name=static_dino.name)
             
-            rang = random.randint(1,3)
-            rang = rang*2 if random.uniform(0,1) < 0.1 else rang
-            reward = [static_dino,] if random.uniform(0,1) < 0.1 else [random.choice(DinoPart.get(as_list=True,dino_name=static_dino.name)) for _ in range(rang)]
+            rang = random.randint(1,5)
+            rang = rang+random.randint(1,5) if random.uniform(0,1) < 0.1 else rang
+            reward = [static_dino for _ in range(random.randint(3))] if random.uniform(0,1) < 0.1 else [random.choice(DinoPart.get(as_list=True,dino_name=static_dino.name)) for _ in range(rang)]
             profile = JP.get(member)
             drop = await Droppable.dropEvent(member,profile,items=reward)
             

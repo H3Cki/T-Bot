@@ -30,9 +30,9 @@ class Rewards:
                 packets.append(cls.rewards['playing'])
         
         for packet in packets:
-            reward[0] += packet[0]
-            reward[1] += packet[1]
-            reward[2] += packet[2]
+            reward[0] += packet[0]*4
+            reward[1] += packet[1]*4
+            reward[2] += packet[2]*4
 
         return reward
     
