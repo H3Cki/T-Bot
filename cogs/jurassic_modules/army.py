@@ -89,11 +89,22 @@ class DinoBattle:
     def start(self):
         self.modifiers()
         self.battleLoop()
-        Dbh.commit()
+        self.healing()
         self.getSummary()
+        self.dying()
+        Dbh.commit()
         if self.winner == self.atk_army.profile:
             self.plunder = self.atk_army.plunderResources(self.def_army)
-            
+    
+    def healing(self):
+        for army in (self.def_army, self.atk_army):
+            army.heal()
+    
+    def dying(self):
+        for army in (self.def_army, self.atk_army):
+            for dino in army.getDeadDinos():
+                dino.die()
+    
     def isFinished(self):
         if not self.atk_army.isAlive() or not self.def_army.isAlive():
             return True
@@ -131,6 +142,7 @@ class Army:
         self.profile = profile
         self.starting_dinos = []
         self.dinos = []
+        self.healed_dinos = []
         for pd in profile_dinos:
             for _ in range(pd.count):
                 d = Dino(profile_dino=pd)
@@ -146,6 +158,12 @@ class Army:
         
     def getDeadDinos(self):
         return [dino for dino in self.dinos if not dino.alive]
+        
+    def heal(self):
+        for dino in self.getDeadDinos():
+            if random.uniform(0,1) <= 0.5:
+                dino.alive = True
+                self.healed_dinos.append(dino)
         
     def attack(self, target_army):
         for dino in self.getAliveDinos(shuffle=True):
@@ -175,11 +193,18 @@ class Army:
         
         checked = []
         dinos = list(set(self.starting_dinos))
-        for dino in list(sorted(dinos,key = lambda x: x.tier)):
+        
+        starting_names = [dino.name for dino in self.starting_dinos]
+        healed_names = [dino.name for dino in self.healed_dinos]
+        
+        for dino in list(sorted(dinos,key = lambda x: (dinos_names.count(x.name),healed_names.count(x.name)),reverse=True)):
             if dino.name in checked:
                 continue
             checked.append(dino.name)
-            t.append(f'`{DSE.emojis["dino1"]} T{dino.tier}` **{dino.name.capitalize()}** `{[dino.name for dino in self.starting_dinos].count(dino.name)}` → `{dinos_names.count(dino.name)}`')
+            n_healed = healed_names.count(dino.name)
+            healed_text =  f' ({n_healed} healed)' if n_healed else ''
+            text = f'`{DSE.emojis["dino1"]} T{dino.tier}` **{dino.name.capitalize()}** `{starting_names.count(dino.name)}` → `{dinos_names.count(dino.name)}{healed_text}`'
+            t.append(text)
         total_stats = StaticDino.sumStats([dino.static_dino for dino in self.getAliveDinos()],as_text=True)
         t.append(f"`💀` Survived: {total_stats}")
         
@@ -191,7 +216,7 @@ class Army:
     def getCapacity(self):
         capacity = ResourcesBase()
         for dino in self.getAliveDinos():
-            base_cap = int(dino.health/dino.tier)
+            base_cap = int(50*dino.health/dino.tier)
             capacity.shit += base_cap
             capacity.wood += int(base_cap*0.75)
             capacity.gold += int(base_cap*0.25)
@@ -240,7 +265,7 @@ class Dino(Copy):
         self._health = value
         if self._health <= 0 and self.alive:
             self.alive = False
-            self.die()
+            #self.die()
             
     def die(self):
         if self.pd:
