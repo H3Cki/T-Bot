@@ -324,6 +324,12 @@ class JurrasicPark(commands.Cog):
         #         await Buildable.buildEvent(profile,lab.dinos_with_parts,lab=Lab(profile),no_warning=True)
         #     return
         
+        # if extra == 'delete':
+        #     for arg in args:
+        #         for part in ProfileDinoPart.get(profile_id=profile.id):
+        #             if part.entity.parent.is_random:
+        #             part.delete()
+        
         await lab.start(ctx)
 
 

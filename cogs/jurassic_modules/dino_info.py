@@ -126,6 +126,9 @@ class StaticDino(Entity,Droppable, Buildable):
             t += f"- {fact}\n"
         return t
 
+    @property
+    def emoji(self):
+        return self.EMOJI
 
     def stats_as_string(self,emoji=True):
         return f"{DinoStatEmojis.emojis['damage']}{str(self.damage)}{DinoStatEmojis.emojis['blank']}{DinoStatEmojis.emojis['armor']}{str(self.armor)}{DinoStatEmojis.emojis['blank']}{DinoStatEmojis.emojis['health']}{str(self.health)}{DinoStatEmojis.emojis['blank']}{DinoStatEmojis.emojis['speed']}{str(self.speed)}"
@@ -257,6 +260,10 @@ class StaticDino(Entity,Droppable, Buildable):
     def isDiscovered(self,guild_id):
         guild_discs = Discovery.get(guild_id=guild_id,dino_name=self.name)
         return guild_discs
+
+    @classmethod
+    def selectForDrop(cls):
+        return random.choice(cls.get(is_random=False))
 
     @classmethod
     def sumStats(cls,dinos,as_text=False):
