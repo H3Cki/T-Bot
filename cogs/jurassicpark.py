@@ -685,7 +685,7 @@ class JurrasicPark(commands.Cog):
                 return
             if dino.isDiscovered(g.id):
                 emoji = StaticDino.EMOJI
-                tier = f" ᴛ{dino.tier}"
+                tier = f"ᴛ{dino.tier} "
             else:
                 emoji = '❓'
                 tier = ''
@@ -694,9 +694,9 @@ class JurrasicPark(commands.Cog):
             channel = None
             if len(self.channels[g.id]) >= 4 and limit:
                 channel = random.choice(self.channels[g.id])
-                await channel.edit(name=f"{emoji} {dino.name.capitalize()}"+tier)
+                await channel.edit(name=tier + f"{dino.name.capitalize()} {emoji} ")
             else:
-                channel = await category.create_voice_channel(f"{emoji} {dino.name.capitalize()}"+tier)
+                channel = await category.create_voice_channel(tier + f"{dino.name.capitalize()} {emoji} ")
                 
             r = random.randint(0,len(category.voice_channels))
             if r != len(category.voice_channels):
@@ -706,7 +706,7 @@ class JurrasicPark(commands.Cog):
         while True:
             await self.find_channels()
             await self.core()
-            await asyncio.sleep(1600)
+            await asyncio.sleep(300)
 
     async def loop(self):
         while True:
