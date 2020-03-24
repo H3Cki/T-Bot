@@ -38,7 +38,7 @@ class Lab:
               
         
               
-        self.cost_multiplier = round(1 + ((len(self.dinos_with_parts)-self.MAX_CAPACITY))/5,1) if len(self.dinos_with_parts) > self.MAX_CAPACITY else 1
+        self.cost_multiplier = round(1 + ((len(self.dinos_with_parts)-self.MAX_CAPACITY))/8,1) if len(self.dinos_with_parts) > self.MAX_CAPACITY else 1
         self.cost_multiplier_perc = (self.cost_multiplier*100)-100
         
         
