@@ -91,14 +91,22 @@ class DinoBattle:
         self.battleLoop()
         self.healing()
         self.getSummary()
-        self.dying()
-        Dbh.commit()
+        
         if self.winner == self.atk_army.profile:
             self.plunder = self.atk_army.plunderResources(self.def_army)
     
+        self.healing2()
+        self.dying()
+        Dbh.commit()
+        
     def healing(self):
         for army in (self.def_army, self.atk_army):
             army.heal()
+    
+    def healing2(self):
+        for army in (self.def_army, self.atk_army):
+            for dino in army.healed_dinos:
+                dino.alive = True
     
     def dying(self):
         for army in (self.def_army, self.atk_army):
@@ -161,8 +169,8 @@ class Army:
         
     def heal(self):
         for dino in self.getDeadDinos():
-            if random.uniform(0,1) <= 0.5:
-                dino.alive = True
+            if random.uniform(0,1) <= 0.2:
+                #dino.alive = True
                 self.healed_dinos.append(dino)
         
     def attack(self, target_army):

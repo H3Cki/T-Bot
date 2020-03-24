@@ -220,7 +220,7 @@ class JurrasicPark(commands.Cog):
 
 
     @commands.command()
-    async def attack(self,ctx,target:discord.Member=None):    
+    async def attack(self,ctx,target:discord.Member=None,extra=None):    
         if target is None or target == ctx.message.author or target.bot:
             await ctx.send(f'To use this command specify who you want to attack by mentioning them. For example `!attack @{random.choice([str(member) for member in ctx.message.guild.members if not member.bot and not member == ctx.message.author])}`')
             return
@@ -235,7 +235,7 @@ class JurrasicPark(commands.Cog):
         
         def_prof = JP.get(target)
         
-        if def_prof.last_destroyed:
+        if def_prof.last_destroyed and not extra == 'f':
             delta = datetime.now() - def_prof.last_destroyed
             td = timedelta(minutes=45)
             if delta < td:
