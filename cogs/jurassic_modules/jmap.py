@@ -1,6 +1,6 @@
 import asyncio
 from discord import Embed
-from .jurassicprofile import JurassicProfile as JP
+from .entities.entity import ProfileEntity
 
 
 class JMap:
@@ -24,14 +24,9 @@ class JMap:
         e.set_thumbnail(url='https://i.imgur.com/jujvDF8.jpg')
         for i,profile in enumerate(self.profiles):
             idx = i+1
-            member = self.guild.get_member(profile.member_id)
-            if not member:
-                profile.delete()
-                continue
-            text = f"Power: {profile.points}"
+            member = profile.member
+            text = f"Power: {ProfileEntity.valueOfProfile(profile)}"
             e.add_field(name=f"`{idx} 🗺️` {member.display_name}",value=text,inline=True)
-            
-            
         return e
     
         

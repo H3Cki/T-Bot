@@ -29,31 +29,30 @@ class SlotSettings:
         self.show_progress = True
         self.sleeptime = 0.9
        
-class Slot(commands.Cog):
-    def __init__(self,bot):
-        self.bot = bot
-        self.ingame = []
-       
+class Slot:
+    ingame = []
+    
+    def __init__(self,emojis,cc=[],ccs=[]):
+        self.emojis = emojis
+        self.custom_conditions = cc
+        self.custom_conditions_sets = ccs
+        self.winner = []
 
-    @commands.command(name='say')
-    async def _say(self,ctx):
-        e = discord.Embed(description="<:zwykly_miecz:551107373775847427> x22")
-        m = await ctx.send(embed=e)
-        await m.add_reaction("<:zwykly_miecz:551107373775847427>")
-    @commands.command(name='slot')
-    async def slot_game(self,ctx,slots=3, difficulty= 7):
-        if int(slots) > 10 or int(slots) < 2 or ctx.message.author.id in self.ingame or int(difficulty) < 2 or int(difficulty) > len(ctx.message.guild.emojis):
-            await ctx.send(f"{ctx.message.author.mention} Spierdalaj.")
-            return
+    async def slot_game(self,ctx,payment_info='SLOT 🎰'):
+        if ctx.message.author.id in self.__class__.ingame:
+            await ctx.send(f'{ctx.message.author.mention} Fuck off nigga.')
+            return {'message':None,'winner':self.winner}
+        slots = 3
+        difficulty = 4
         settings = SlotSettings()
-        if len(self.ingame) == 2:
+        if len(self.__class__.ingame) == 2:
             settings.sleeptime = 1.8
-        elif len(self.ingame) > 2:
+        elif len(self.__class__.ingame) > 2:
             settings.show_progress = False
-        self.ingame.append(ctx.message.author.id)
-        emojis = random.sample(ctx.message.guild.emojis,difficulty)
+        self.__class__.ingame.append(ctx.message.author.id)
+        emojis = random.sample(self.emojis,difficulty)
         slots = [SlotSlot(emojis,2) for _ in range(int(slots))]
-        header = f"{ctx.message.author.mention} SLOT 🎰\n"
+        header = f"{ctx.message.author.mention} {payment_info}\n"
         message = None
         row0 = ''
         row1 = ''
@@ -63,6 +62,7 @@ class Slot(commands.Cog):
         row4 = ''
         text = ''
         go = True
+        message = None
         while go:
             if self.slotsDone(slots):
                 go = False
@@ -85,8 +85,8 @@ class Slot(commands.Cog):
                 slot.next()
         if settings.show_progress == False:
             await ctx.send(header+text)
-        self.ingame.remove(ctx.message.author.id)
-       
+        self.__class__.ingame.remove(ctx.message.author.id)
+        return {'message':message,'winner':[slot.getEmoji() for slot in slots]}
     def printRow(self,slots,offset=0,sep="` `"):
         return sep + sep.join([str(slot.getEmoji(offset)) for slot in slots]) + sep
     def slotsDone(self,slots):
@@ -95,7 +95,9 @@ class Slot(commands.Cog):
                 return False
         return True
     def isWin(self,slots):
-        if len(set([slot.getEmoji() for slot in slots])) == 1:
+        es = [slot.getEmoji() for slot in slots]
+        e_set = set(es)
+        if len(e_set) == 1 or e_set in self.custom_conditions_sets or es in self.custom_conditions:
             return True
         return False
     def printSlotEmojis(self,slots):
@@ -108,7 +110,7 @@ class Slot(commands.Cog):
         if not self.slotsDone(slots):
             return "❓"
         if self.isWin(slots):
-            return f"🏆 {ctx.message.author.mention} Won a slot. 🎉 @everyone"
+            return f"🏆 {ctx.message.author.mention} Won a slot. 🎉"
         else:
             return "❌ Unfortunate."
     def getWinChange(self,slots):
@@ -118,5 +120,3 @@ class Slot(commands.Cog):
      
         return f"{s:.6f}%"
     
-def setup(bot):
-    bot.add_cog(Slot(bot))

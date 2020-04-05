@@ -117,7 +117,7 @@ class Buildable:
                     if not d.isDiscovered(member.guild.id):
                         di = Discovery(d.name,profile.id,profile.guild_id)
                         Dbh.session.add(di)
-                        await gs.send(content=f'New discovery by {member.display_name}!',embed=d.getEmbed())
+                        await gs.send(embed=d.getEmbed(footer=f'Disovered by {member.display_name}'),discovery=True)
             Dbh.commit()
         
         else:

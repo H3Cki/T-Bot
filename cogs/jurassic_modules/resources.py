@@ -7,10 +7,10 @@ import discord
 class Rewards:
     rewards = {
         'online' : [1,0,0],
-        'on_voice_chat' : [3,2,1],
-        'playing' : [1,1,1],
+        'on_voice_chat' : [9,4,2],
+        'playing' : [0,1,0],
         'company' : [0,1,1],
-        'discovery' : [400,200,50]
+        'discovery' : [100,60,25]
     }
     
     @classmethod
@@ -30,9 +30,9 @@ class Rewards:
                 packets.append(cls.rewards['playing'])
         
         for packet in packets:
-            reward[0] += packet[0]*4
-            reward[1] += packet[1]*4
-            reward[2] += packet[2]*4
+            reward[0] += packet[0]*2
+            reward[1] += packet[1]*2
+            reward[2] += packet[2]*2
 
         return reward
     
@@ -43,6 +43,7 @@ class ResourceEmojis:
     WOOD = 'wood'
     GOLD = 'gold'
     names = [SHIT,WOOD,GOLD]
+    
     emojis = {
         SHIT : '<:shit1:674037327101952043>',
         WOOD : '<:wood:674037327399485440>',
@@ -52,6 +53,9 @@ class ResourceEmojis:
         GOLD+'void' : '<:gold_void:689094862045315109>'
     }
 
+    
+    emojis_list = [emojis[SHIT],emojis[WOOD],emojis[GOLD]]
+    
 class ResourcesBase(Copy):
     @classmethod
     def getAll(cls):
@@ -100,22 +104,40 @@ class ResourcesBase(Copy):
         return True    
     
             
-    def asText(self,blank=True):
-        blank = '<:blank:551400844654936095>' if blank else ' '
-        return f"{ResourceEmojis.emojis['shit']}{self.shit}{blank}{ResourceEmojis.emojis['wood']}{self.wood}{blank}{ResourceEmojis.emojis['gold']}{self.gold}"
+    def asText(self,blank=True,ignore_zeros=False,reverse=False):
+        if blank == True or blank == False:
+            blank = '<:blank:551400844654936095>' if blank else ' '
+        
+        texts = []
+        for i,resource in enumerate(self.resources):
+            if ignore_zeros and resource == 0:
+                continue
+            if reverse:
+                texts.append(f'{resource}{ResourceEmojis.emojis_list[i]}')
+            else:
+                texts.append(f'{ResourceEmojis.emojis_list[i]}{resource}')
+            
+            
+        return blank.join(texts)
     
     
-    def compareAsText(self,resources):
-        blank = '<:blank:551400844654936095>'
+    def compareAsText(self,resources,blank='<:blank:551400844654936095>',reverse_void=False):
+        blank = blank
         comps = []
         i = 0
         for this_res, cmp_res in zip(self.resources,resources.resources):
             r_name = ResourceEmojis.names[i]
             
-            if cmp_res >= this_res:
-                emoji = ResourceEmojis.emojis[r_name]
+            if not reverse_void:
+                if cmp_res >= this_res:
+                    emoji = ResourceEmojis.emojis[r_name]
+                else:
+                    emoji = ResourceEmojis.emojis[r_name+'void']
             else:
-                emoji = ResourceEmojis.emojis[r_name+'void']
+                if cmp_res < this_res:
+                    emoji = ResourceEmojis.emojis[r_name]
+                else:
+                    emoji = ResourceEmojis.emojis[r_name+'void']
                 
             comps.append(f'{emoji}{cmp_res}/{this_res}')
             

@@ -44,13 +44,13 @@ class Droppable: #Doesnt work when not inherited by class that inherits from Ent
             items = []
             for _ in range(count):
                 items.append(cls.selectForDrop())
-
-        embed = cls.combinedDropEmbed(member,items)
         gs = kwargs.get('gs', None) or JGS.get(member.guild.id)
         
         for item in items:
             item._drop(profile)
+            
         if not kwargs.get('silent',None):
+            embed = cls.combinedDropEmbed(member,items)
             await cls.sendEmbed(member,embed,gs)
         
         return items

@@ -67,7 +67,7 @@ class StaticDino(Entity,Droppable, Buildable):
     TIERED = True
     driver = None
     
-    BASE_BUILD_COST = [400,200,50]
+    BASE_BUILD_COST = [100,60,25]
     
     # MAPPER ATTRIBUTES -------------------- #
     
@@ -140,8 +140,8 @@ class StaticDino(Entity,Droppable, Buildable):
         r = Requirements([(head,1),(meat,1),(bones,1)])
         return r
 
-    def buildCost(self,guild_id,lab=None):
-        is_discovered = self.isDiscovered(guild_id)
+    def buildCost(self,guild_id=None,lab=None):
+        is_discovered = self.isDiscovered(guild_id) if guild_id else True
         cost = ResourcesBase(cost=self.__class__.BASE_BUILD_COST)
         if lab:
             cost = cost*lab.cost_multiplier
@@ -226,7 +226,7 @@ class StaticDino(Entity,Droppable, Buildable):
     def getValidUrl(self):
         return self.link_pl or self.link_en
 
-    def getEmbed(self,descr=True):
+    def getEmbed(self,descr=True,footer=None):
         print(f"SENDING EMBED OF {self.name}")
         if self.is_random:
             r = " [RANDOM]"
@@ -253,7 +253,8 @@ class StaticDino(Entity,Droppable, Buildable):
         e.set_thumbnail(url=self.map_image_url)
         if self.is_image_random:
             e.set_footer(text=f"❗ Image is random, {len(self.other_image_urls_list)} replacement images available.")
-
+        if footer:
+            e.set_footer(text=footer)
             
         return e
     
@@ -512,7 +513,6 @@ class DinoPart(Entity,Droppable):
 
     @property
     def parent(self):
-        print(f"GETTING DINO")
         return StaticDino.get(name=self.dino_name)
 
     @property

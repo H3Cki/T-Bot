@@ -13,24 +13,30 @@ from sqlalchemy.inspection import inspect
 
 # from .jurassic_modules.dino import Dino
 
+from .slot import Slot
 
+from .jurassic_modules.jmap import JMap
 
-# from .jurassic_modules.jmap import JMap
-
-
+import math
 
 from .jurassic_modules.guild_settings import JGuildSettings
 from .jurassic_modules.discovery import Discovery
 from .jurassic_modules.jurassicprofile import JurassicProfile as JP
-from .jurassic_modules.dino_info import ProfileDinoPart, DinoPart, StaticDino, ProfileDino, DinoStatEmojis as DSE
+from .jurassic_modules.dino_info import ProfileDinoPart, DinoPart, StaticDino, ProfileDino, DinoPartTypes, DinoStatEmojis as DSE
 from .jurassic_modules.resources import *
 from .jurassic_modules.embeds import *
 from .jurassic_modules.event_handler import voiceStateUpdateHandler as veh
 from .jurassic_modules.entities.entity import ProfileEntity, Entity
 from .jurassic_modules.army import *
 from .jurassic_modules.lab import Lab
+from .jurassic_modules.shop import Shop
 from .jurassic_modules.entities.buildable import Buildable
+from .jurassic_modules.entities.droppable import Droppable
 from .utils.imageutils import *
+
+
+
+SLOT_EMOJIS = [ResourceEmojis.emojis[ResourceEmojis.SHIT],ResourceEmojis.emojis[ResourceEmojis.WOOD],ResourceEmojis.emojis[ResourceEmojis.GOLD],DSE.emojis['dino1'],DinoPartTypes.emojis[DinoPartTypes.HEAD],DinoPartTypes.emojis[DinoPartTypes.MEAT],DinoPartTypes.emojis[DinoPartTypes.BONE]]
 
 
 class JurrasicPark(commands.Cog):
@@ -42,6 +48,7 @@ class JurrasicPark(commands.Cog):
         self.last_shuffle = 0
         self.shuffle_interval = 1200
         self.channels = {}
+        self.discovered_dinos = []
     #
     #
     # COMBAT HERE ---------------------------
@@ -72,6 +79,7 @@ class JurrasicPark(commands.Cog):
         
         t = f"""guild_id : {gs.guild_id}
         notif_channel: {gs.notif_channel}
+        discovery_channel: {gs.discovery_channel}
         voice_cat: {gs.voice_cat}
         active: {gs.active}"""
         await ctx.send(t)
@@ -106,6 +114,17 @@ class JurrasicPark(commands.Cog):
             return
         
         gs.notif_channel = ctx.message.channel.id
+        Dbh.session.commit()
+        
+    @commands.command(name='setdisco',hidden=True)
+    @commands.has_guild_permissions(manage_guild=True)
+    async def setdisco(self,ctx):
+        gs = JGuildSettings.get(ctx.message.guild.id)
+        if not gs:
+            await ctx.send("No setting for this server")
+            return
+        
+        gs.discovery_channel = ctx.message.channel.id
         Dbh.session.commit()
 
 
@@ -220,7 +239,9 @@ class JurrasicPark(commands.Cog):
 
 
     @commands.command()
-    async def attack(self,ctx,target:discord.Member=None,extra=None):    
+    async def attack(self,ctx,target:discord.Member=None,extra=None):
+        # await ctx.send(embed=redEmbed("Attacks are temporejrli disabled cuz they are broken w chuj"))
+        # return
         if target is None or target == ctx.message.author or target.bot:
             await ctx.send(f'To use this command specify who you want to attack by mentioning them. For example `!attack @{random.choice([str(member) for member in ctx.message.guild.members if not member.bot and not member == ctx.message.author])}`')
             return
@@ -246,11 +267,15 @@ class JurrasicPark(commands.Cog):
         
         
         def_army = ProfileDino.get(profile_id=def_prof.id)
-        
-        base_army_at = Army(atk_prof,atk_army)
-        base_army_df = Army(def_prof,def_army)
+
         army_at = Army(atk_prof,atk_army)
         army_df = Army(def_prof,def_army)
+        
+        at_val = ProfileDino.valueOfArmy(army_at)
+        df_val = ProfileDino.valueOfArmy(army_df)
+        
+        if at_val >= 2*df_val and len(army_df.starting_dinos):
+            army_df.flee()
         
         battle = DinoBattle(army_at,army_df)
         
@@ -268,31 +293,9 @@ class JurrasicPark(commands.Cog):
    
         member = member or ctx.message.author
         profile = JP.get(member)
-        dl = list(sorted(ProfileDino.get(profile_id=profile.id), key=lambda x: x.count, reverse=True))
-        embed = discord.Embed(title = f"{member.display_name} - {sum([d.count for d in dl])} OWNED DINOSAURS" ,color=discord.Color.from_rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255)))
-        embed.set_thumbnail(url='https://compote.slate.com/images/73f8ce3a-7952-48d5-bbf3-c4e25dc3a144.jpeg')
-        lines = []
 
-
-        for i,pd in enumerate(dl):
-            d = pd.entity
-            if d:
-                info = f"[{DSE.emojis['wiki']}]({d.getValidUrl()})[📷]({d.image_url})"
-            else:
-                info = "EXTINCT"
-            info = ''
-            txt = f"{DSE.emojis['blank']}{DSE.emojis['damage']}{str(d.damage)}{DSE.emojis['blank']}{DSE.emojis['armor']}{str(d.armor)}{DSE.emojis['blank']}{DSE.emojis['health']}{str(d.health)}{DSE.emojis['blank']}{DSE.emojis['speed']}{str(d.speed)}{DSE.emojis['blank']}{info}"
-            count_text = f"(x{pd.count})" if pd.count > 1 else ''
-            embed.add_field(name=f"`{i+1} {d.emoji}` **{d.name.capitalize()}**#{d.entity_id} - Tier {d.tier} {count_text}",value=txt,inline=False)
-        
-        all_dinos = []
-        for pdino in dl:
-            for _ in range(pdino.count):
-                all_dinos.append(pdino.entity)
-        total_stats = StaticDino.sumStats(all_dinos,as_text=True)
-        embed.description = f"`🔥` Power: {total_stats}\nAvgerage Tier: {round(sum([pd.entity.tier for pd in dl])/(len(dl) or 1))}"
-        #embed.set_footer(text=f"Click wiki icon for more info about dinos.")
-        await ctx.send(embed=embed)
+        ap = ArmyPreview(self,profile,ProfileDino.get(profile_id=profile.id))
+        await ap.start(ctx)
 
     def isDinoLive(self,guild,member,dino_name):
         gs = JGuildSettings.get(guild.id)
@@ -311,7 +314,7 @@ class JurrasicPark(commands.Cog):
         return False
 
     @commands.command(name='lab')
-    async def member_assembly(self,ctx,extra=None,*,args=None):
+    async def member_assembly(self,ctx,extra=None,*args):
         """
         Shows member's dino lab
         """
@@ -324,13 +327,61 @@ class JurrasicPark(commands.Cog):
         #         await Buildable.buildEvent(profile,lab.dinos_with_parts,lab=Lab(profile),no_warning=True)
         #     return
         
-        # if extra == 'delete':
-        #     for arg in args:
-        #         for part in ProfileDinoPart.get(profile_id=profile.id):
-        #             if part.entity.parent.is_random:
-        #             part.delete()
+        if extra == 'trash':
+            if not args:
+                await ctx.send(f'To use this command specify what you want to trash.\nFor example `!lab trash diplodocus`.\nTrashing gives {ResourcesBase(cost=[20,11,0]).asText(blank=False,ignore_zeros=True)} resources per part, and costs {ResourcesBase(cost=[0,0,1]).asText(blank=False,ignore_zeros=True)}')
+                return
+            i = 0
+            res = profile.resources
+            payment = ResourcesBase(cost=[0,0,0])
+            breaker = False
+            if 'all' in args:
+                for part in ProfileDinoPart.get(profile_id=profile.id):
+
+                    for _ in range(part.count):
+                        
+                        if payment.copy().addResources([0,0,1]).gold > res.gold:
+                            breaker = True
+                            break
+                        payment.gold += 1
+                        part.count -= 1
+                        i += 1
+                    if breaker:
+                        break
+
+            else:
+                for arg in args:
+                    for part in ProfileDinoPart.get(profile_id=profile.id):
+                        
+                        if not part.entity.parent.name == arg.lower():
+                            continue
+    
+                        for _ in range(part.count):
+                            
+                            if payment.copy().addResources([0,0,1]).gold > res.gold:
+                                breaker = True
+                                break
+                            payment.gold += 1
+                            part.count -= 1
+                            i += 1
+                        if breaker:
+                            break
+                    if breaker:
+                        break    
+
+                        
+            r = ResourcesBase(cost=[20*i,10*i,0])
+            r -= payment
+            res += r
+            
+            
+            Dbh.commit()
+            await ctx.send(embed=discord.Embed(description=f'{i} parts trashed.\n{r.asText()}'))
+            return
         
         await lab.start(ctx)
+
+
 
 
     @commands.command(name='build')
@@ -410,6 +461,146 @@ class JurrasicPark(commands.Cog):
             await ctx.send(embed=discord.Embed(description=f'{dino.name.capitalize()} has not been discovered yet.'))
     
     
+    @commands.command(name='shop')
+    async def shop(self,ctx):
+        profile = JP.get(ctx.message.author)
+        s = Shop(profile,ctx.message.author,cog=self)
+        await s.start(ctx)
+    
+    
+    @commands.command(name='convert')
+    async def convert(self,ctx,amount=None,source=None,to=None,target=None):
+        """
+        Converts one resource to another
+        """
+        names = ['shit','wood','gold']
+        if amount == None or source not in names or target not in names or to != 'to' or target == source:
+            await ctx.send(f'`!convert 100 gold to wood` converts 100 gold to 200 wood.\n`!convert all gold to wood` converts all gold to  wood.\nConversion values:\ngold : 3.0\nwood : 1.5\nshit : 1.0')
+            return
+        
+        profile = JP.get(ctx.message.author)
+        res = profile.resources
+        idx = names.index(source)
+        amount = int(amount) if amount != 'all' else int(res.resources[idx])
+        
+        if amount <= 0:
+            await ctx.send(f"{ctx.message.author.mention} You can't convert 0 {source}.")
+            return
+        
+        if amount > res.resources[idx]:
+            await ctx.send(f"{ctx.message.author.mention} Not enought {source}!")
+            return
+        
+        
+        values = {'shit': 1, 'wood': 1.5, 'gold': 3}
+        
+        value = int(math.floor(values[source]/values[target]*amount))
+        
+        if value == 0:
+            await ctx.send(f"{ctx.message.author.mention} Value is too small!")
+            return
+        
+        cost = [0,0,0]
+        cost[idx] -= amount
+        cost[names.index(target)] += value
+        conversion = ResourcesBase(cost=cost)
+        
+        res += conversion
+        Dbh.commit()
+        await ctx.send(embed=discord.Embed(description=conversion.asText()))
+        
+        
+    # @commands.command(name='donate')
+    # async def donate(self,ctx,amount=None,source=None,to=None,target=None):
+    #     names = ['shit','wood','gold']
+        
+    #     if amount == None or source not in names or target not in names or to != 'to' or target == source:
+    #         await ctx.send(f'`!convert 100 gold to wood` converts 100 gold to 200 wood.\n`!convert all gold to wood` converts all gold to  wood.\nConversion values:\ngold : 3.0\nwood : 1.5\nshit : 1.0')
+    #         return
+        
+    #     if amount <= 0:
+    #         await ctx.send(f"{ctx.message.author.mention} You can't convert 0 {source}.")
+    #         return
+        
+    #     if amount > res.resources[idx]:
+    #         await ctx.send(f"{ctx.message.author.mention} Not enought {source}!")
+    #         return
+        
+        
+    @commands.command(name='slot')
+    async def j_slot(self,ctx,gold:int=0):
+        if gold < 10:
+            await ctx.send(f'{ctx.message.author.mention} Min bid is 10 gold.')
+            return
+        elif gold > 1000:
+            await ctx.send(f'{ctx.message.author.mention} Max bid is 1000 gold.')
+            return
+        payment = ResourcesBase(cost=[0,0,gold])
+        profile = JP.get(ctx.message.author)
+        if profile.resources.gold < payment.gold:
+            await ctx.send(f'{ctx.message.author.mention} Not enough gold: {profile.resources.gold}/{payment.gold}')
+            return
+        res = profile.resources
+        res -= payment
+        ccs = set([ResourceEmojis.emojis[ResourceEmojis.SHIT],ResourceEmojis.emojis[ResourceEmojis.WOOD],ResourceEmojis.emojis[ResourceEmojis.GOLD]])
+        slot = Slot(SLOT_EMOJIS,ccs=[ccs,])
+        result = await slot.slot_game(ctx,payment_info=f'Playing for {payment.asText(ignore_zeros=True,reverse=True)}')
+        emoji = result['winner']
+        
+        res_reward = ResourcesBase()
+        res_rewarded = False
+        item_reward = []
+        
+        if set(emoji) == ccs:
+                res_reward.addResources([(payment.gold**2)*8,(payment.gold**2)*4,(payment.gold**2)*2])
+                res_rewarded = True
+        
+        emoji = emoji[0] if len(set(emoji)) == 1 else None
+        
+        if emoji:
+            
+            
+            discovered_dinos = [dino for dino in StaticDino.get() if dino.isDiscovered(ctx.message.guild.id)] or StaticDino.get()
+            owned_dinos =  Lab(profile,naked=True).dinos_with_parts or discovered_dinos
+            dino_rg = round(payment.gold/10) if payment.gold/10 >= 1 else 1
+            part_rg = round(payment.gold/2) if payment.gold/2 >= 1 else 1
+            
+            if emoji == ResourceEmojis.emojis[ResourceEmojis.SHIT]:
+                res_reward.addResources([(payment.gold**2)*9,0,0])
+                res_rewarded = True
+            elif emoji == ResourceEmojis.emojis[ResourceEmojis.WOOD]:
+                res_reward.addResources([0,(payment.gold**2)*5,0])
+                res_rewarded = True
+            elif emoji == ResourceEmojis.emojis[ResourceEmojis.GOLD]:
+                res_reward.addResources([0,0,(payment.gold**2)*3])
+                res_rewarded = True
+            elif emoji == DSE.emojis['dino1']:
+                dino_list = [random.choice(discovered_dinos) for _ in range(dino_rg)]
+                dino_list = [dino for dino in range(dino.tier) for dino in dino_list]
+            elif emoji == DinoPartTypes.emojis[DinoPartTypes.HEAD]:
+                parts_reward = [DinoPart.get(dino_name=random.choice(owned_dinos).name,type_idx=0) for _ in range(part_rg)]
+            elif emoji == DinoPartTypes.emojis[DinoPartTypes.MEAT]:
+                item_reward += [DinoPart.get(dino_name=random.choice(owned_dinos).name,type_idx=1) for _ in range(part_rg)]
+            elif emoji == DinoPartTypes.emojis[DinoPartTypes.BONE]:
+                item_reward += [DinoPart.get(dino_name=random.choice(owned_dinos).name,type_idx=2) for _ in range(part_rg)]
+            
+            
+            
+            if item_reward:
+                drop = await Droppable.dropEvent(ctx.message.author,profile,items=item_reward)
+                for d in drop:
+                    if isinstance(d,StaticDino):
+                        if not d.isDiscovered(ctx.message.author.guild.id):
+                            profile.resources.addResources(Rewards.rewards['discovery'])
+                            di = Discovery(d.name,profile.id,profile.guild_id)
+                            Dbh.session.add(di)
+                            await gs.send(embed=d.getEmbed(footer=f'Disovered by {ctx.message.author.display_name}'),discovery=True)
+                            
+        if res_rewarded:
+            res += res_reward
+            await ctx.send(embed=discord.Embed(description=res_reward.asText(ignore_zeros=True)))
+            Dbh.commit()
+            
     async def ask_for_img(self, ctx, dino_name=None, dino = None):
         """
         Shows profile of a dino by its name and lists all images of it
@@ -494,17 +685,15 @@ class JurrasicPark(commands.Cog):
         """
         Shows profile of a dino by its name
         """
-        #target = ctx.message.author or target
         profile = JP.get(target)
-        # dino = random.choice(StaticDino.getAll())
-        # #owned_dino = ProfileDino(profile,dino)
-        # #Dbh.session.add(owned_dino)
-        # dino._drop(profile)
+
+        r = []
+        dinos = StaticDino.get(is_random=False)
         for _ in range(count):
-            await StaticDino.dropEvent(target,profile,silent=True)
-            #pds = ProfileDino.get(profile_id=profile.id)
-        #await ctx.send('\n'.join([pd.briefText for pd in pds]))
+            r.append(random.choice(dinos))
             
+        await StaticDino.dropEvent(target,profile,silent=True,items=r)
+
             
     @commands.command(name='gibres',hidden=True)
     async def gibres(self,ctx,a,b,c,target:discord.Member=None):
@@ -744,10 +933,11 @@ class JurrasicPark(commands.Cog):
         # Dbh.session.execute('DROP TABLE discovery;')
         # Dbh.session.execute('DROP TABLE resources;')
         # Dbh.session.execute('DROP TABLE jurassicprofile;')
-        # Dbh.session.execute('DROP TABLE part;')
+        # Dbh.session.execute('DROP TABLE jguildsettings;')
         # Dbh.session.execute('DROP TABLE profile_dino;')
         # Dbh.session.execute('DROP TABLE profile_dino_part;')
         # Dbh.session.execute('DROP TABLE profile_entity;')
+        
 
 
 

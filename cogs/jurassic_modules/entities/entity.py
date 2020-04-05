@@ -1,7 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, BigInteger, Boolean, String, orm
 from sqlalchemy.events import event
 from ...utils.dbconnector import DatabaseHandler as Dbh
-from ..jurassicprofile import JurassicProfile
 
 
 
@@ -45,7 +44,6 @@ class ProfileEntity(Dbh.Base):
     def count(self,value):
         
         if value <= 0:
-            print(f'DELETING {self}')
             self.delete()
         else:
             self.pe_count = value
@@ -73,6 +71,15 @@ class ProfileEntity(Dbh.Base):
                 res = asset.buildCost(profile.guild_id).resources
                 for r in res:
                     v += r
+        return v
+    
+    @classmethod
+    def valueOfArmy(cls,army):
+        v = 0
+        for dino in army.starting_dinos:
+            res = dino.static_dino.buildCost(army.profile.guild_id).resources
+            for r in res:
+                v += r
         return v
     
     @classmethod

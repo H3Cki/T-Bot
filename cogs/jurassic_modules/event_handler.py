@@ -68,21 +68,20 @@ class voiceStateUpdateHandler:
             member = self.member
             l = DinoPart.get(as_list=True,dino_name=static_dino.name)
             
-            rang = random.randint(1,5)
-            rang = rang+random.randint(1,5) if random.uniform(0,1) < 0.1 else rang
-            reward = [static_dino for _ in range(random.randint(3))] if random.uniform(0,1) < 0.1 else [random.choice(DinoPart.get(as_list=True,dino_name=static_dino.name)) for _ in range(rang)]
+            parts_range = random.randint(1,3*static_dino.tier)
+            reward = [static_dino for _ in range(random.randint(1,static_dino.tier*2))] if random.uniform(0,1) < 0.1 else [random.choice(DinoPart.get(as_list=True,dino_name=static_dino.name)) for _ in range(parts_range)]
             profile = JP.get(member)
             drop = await Droppable.dropEvent(member,profile,items=reward)
             
             
             for d in drop:
                 if isinstance(d,StaticDino):
-                    if not d.isDiscovered(member.guild.id):
+                    if not d.isDiscovered(self.member.guild.id):
                         profile.resources.addResources(Rewards.rewards['discovery'])
                         di = Discovery(d.name,profile.id,profile.guild_id)
                         Dbh.session.add(di)
-                        await gs.send(content=f'New discovery by {member.display_name}!',embed=d.getEmbed())
-                        
+                        await gs.send(embed=d.getEmbed(footer=f'Disovered by {self.member.display_name}'),discovery=True)
+                    
                             
             Dbh.commit()
             try:
