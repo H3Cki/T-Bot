@@ -19,7 +19,7 @@ $ python T-Bot.py
 !setjnotif - sets notifications to current channel
 ```
 
-# Commands and Features
+# Example Commands and Features
 ## Drop event
 ![](screenshots/drop.gif)
 ## Dinosaur discovery
