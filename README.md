@@ -9,6 +9,7 @@ Owned dinosaurs can be used to attack others and steal their resources.
 
 # Run
 ```
+$ pip install -r requirements.txt
 $ python T-Bot.py
 ```
 
