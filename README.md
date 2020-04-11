@@ -17,7 +17,7 @@ $ python T-Bot.py
 ## Drop event
 ![](screenshots/drop.gif)
 ## Dinosaur discovery
-Shows dino's info when first discovered, there are over 1100 dinosaurs in db.
+Shows dino's info when first discovered, there are over 1100 dinosaurs that can be added.
 ![](screenshots/discovery.png)
 ## Command: !profile
 Shows members profile.
