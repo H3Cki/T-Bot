@@ -18,17 +18,22 @@ $ python T-Bot.py
 ![](screenshots/drop.gif)
 ## Dinosaur discovery
 Shows dino's info when first discovered, there are over 1100 dinosaurs that can be added.
+
 ![](screenshots/discovery.png)
 ## Command: !profile
 Shows members profile.
+
 ![](screenshots/profile.png)
 ## Command: !lab
 Shows build progress for dinos.
+
 ![](screenshots/lab.png)
 ## Command: !attack
 Lets you attack another member and plunder his resources.
+
 ![](screenshots/attack.png)
 ## Command: !slot
 The only currently implemented minigame, not balanced at all.
+
 ![](screenshots/slot.png)
 
