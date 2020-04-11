@@ -13,6 +13,12 @@ $ pip install -r requirements.txt
 $ python T-Bot.py
 ```
 
+# Setup
+```
+!setvoicecat caterogry_id - sets voice category in which bot will operate
+!setjnotif - sets notifications to current channel
+```
+
 # Commands and Features
 ## Drop event
 ![](screenshots/drop.gif)
