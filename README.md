@@ -12,20 +12,22 @@ Owned dinosaurs can be used to attack others and steal their resources.
 $ python T-Bot.py
 ```
 
-## Commands and Features
-# Dinosaur discovery
+# Commands and Features
+## Drop event
+![](screenshots/drop.gif)
+## Dinosaur discovery
 Shows dino's info when first discovered, there are over 1100 dinosaurs in db.
 ![](screenshots/discovery.png)
-# Command: !profile
+## Command: !profile
 Shows members profile.
 ![](screenshots/profile.png)
-# Command: !lab
+## Command: !lab
 Shows build progress for dinos.
 ![](screenshots/lab.png)
-# Command: !attack
+## Command: !attack
 Lets you attack another member and plunder his resources.
 ![](screenshots/attack.png)
-# Command: !slot
+## Command: !slot
 The only currently implemented minigame, not balanced at all.
 ![](screenshots/slot.png)
 
