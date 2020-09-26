@@ -1,5 +1,5 @@
 # T-Bot
-[WORK IN PROGRESS] discord bot with dinosaur-based minigame
+Discord bot with dinosaur-based minigame
 
 # Logic
 From time to time bot creates a voice channel named by some dinosaur. When users enter the channel they are given a drop (part of a dino or entire dino). After few seconds channel disappears.
